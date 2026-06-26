@@ -292,3 +292,8 @@
 #driver-page-overlay {
   background: hsl(var(--foreground) / 0.45) !important;
 }
+
+/* Smooth scroll baseline */
+html {
+  scroll-behavior: smooth;
+}

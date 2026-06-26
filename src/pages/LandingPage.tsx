@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { HeartPulse, ArrowRight, CheckCircle2, ShieldCheck, Stethoscope, Users2, CalendarClock, Sparkles, Video, Bell, BarChart3, FolderOpen, Database, Cloud, Zap, Mail, Quote, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { HexagonalGalleryHero } from '@/components/landing/HexagonalGalleryHero';
+import { GuidanceBot } from '@/components/landing/GuidanceBot';
 import { fadeUp, fadeIn, staggerContainer, staggerSlow, slideDown, scaleIn, viewport } from '@/lib/animations';
 
 const PROBLEMS = [
@@ -192,6 +193,16 @@ function TestimonialCard({ t, index }: { t: typeof TESTIMONIALS[0]; index: numbe
 export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
 
+  /** Smooth-scroll to a section, accounting for the 64 px sticky nav */
+  const scrollTo = useCallback((id: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (!el) return;
+    const NAV_H = 64;
+    const top = el.getBoundingClientRect().top + window.scrollY - NAV_H;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
@@ -207,10 +218,10 @@ export default function LandingPage() {
             <span className="font-semibold text-base tracking-tight">Meds-inn</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#workflow" className="hover:text-foreground transition-colors">Workflow</a>
-            <a href="#testimonials" className="hover:text-foreground transition-colors">Stories</a>
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+            <a href="#workflow"    onClick={scrollTo('workflow')}    className="hover:text-foreground transition-colors">Workflow</a>
+            <a href="#testimonials" onClick={scrollTo('testimonials')} className="hover:text-foreground transition-colors">Stories</a>
+            <a href="#features"   onClick={scrollTo('features')}    className="hover:text-foreground transition-colors">Features</a>
+            <a href="#pricing"    onClick={scrollTo('pricing')}     className="hover:text-foreground transition-colors">Pricing</a>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
@@ -561,6 +572,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Guidance bot — appears after user scrolls */}
+      <GuidanceBot />
     </div>
   );
 }

@@ -284,15 +284,27 @@ export function HexagonalGalleryHero() {
         </div>
 
         {/* ════════════ MOBILE (<lg) ════════════ */}
-        <div className="lg:hidden flex flex-col h-full">
-          {/* Copy — takes natural height */}
-          <div className="px-5 pt-10 pb-5 shrink-0">
+        {/* Honeycomb is absolute background; copy is centred over it */}
+        <div className="lg:hidden relative h-full overflow-hidden">
 
+          {/* Background: full-bleed honeycomb */}
+          <div
+            className="absolute inset-0"
+            style={{ '--hex-w': 'calc((100vw - 5 * var(--hex-gap)) / 4)' } as React.CSSProperties}
+          >
+            <ScrollingHoneycombPanel onOpen={openLightbox} />
+          </div>
+
+          {/* Scrim so text stays readable */}
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-[2px]" />
+
+          {/* Content — centred vertically in the full viewport height */}
+          <div className="relative z-10 flex flex-col justify-center h-full px-6 py-12">
             <h1 className="text-3xl font-bold text-foreground leading-[1.15] text-balance mb-3">
               Maternal care should not end at the{' '}
               <span className="text-primary">hospital door.</span>
             </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed text-pretty mb-5">
+            <p className="text-sm text-muted-foreground leading-relaxed text-pretty mb-6">
               Meds-inn bridges the gap between clinic visits with nurse follow-ups, care plans, reminders, and AI-assisted briefs.
             </p>
             <div className="flex flex-col gap-3">
@@ -307,14 +319,6 @@ export function HexagonalGalleryHero() {
                 </Button>
               </Link>
             </div>
-          </div>
-
-          {/* Honeycomb — fills remaining height of the 100dvh section */}
-          <div
-            className="flex-1 relative min-h-0"
-            style={{ '--hex-w': 'calc((100vw - 5 * var(--hex-gap)) / 4)' } as React.CSSProperties}
-          >
-            <ScrollingHoneycombPanel onOpen={openLightbox} />
           </div>
         </div>
       </section>
