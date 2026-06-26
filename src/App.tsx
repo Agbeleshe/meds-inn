@@ -37,7 +37,7 @@ import TeamPage from './pages/TeamPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import MotherDashboardPage from './pages/MotherDashboardPage';
 import SettingsPage from './pages/SettingsPage';
-
+import { RoleBasedIndex } from './components/RoleBasedIndex';
 const App: React.FC = () => {
   const [splashDone, setSplashDone] = useState(false);
   const [loadProgress, setLoadProgress] = useState<PreloadProgress>({ loaded: 0, total: HEX_IMAGES.length, percent: 0 });
@@ -79,7 +79,7 @@ const App: React.FC = () => {
 
           {/* Dashboard — nested under layout (Outlet renders child) */}
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardOverview />} />
+            <Route index element={<RoleBasedIndex />} />
             <Route path="mother" element={<MotherDashboardPage />} />
             <Route path="mothers" element={<MothersPage />} />
             <Route path="mothers/:id" element={<MotherProfilePage />} />

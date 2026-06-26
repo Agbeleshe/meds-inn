@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS, MOTHER_NAV_ITEMS } from '@/lib/nav-items';
@@ -28,6 +28,13 @@ export function TopBar() {
   const { startTour, startElementTour, mobileMenuOpen, setMobileMenuOpen } = useTour();
   const [localMobileOpen, setLocalMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  /** Switch role AND navigate to /dashboard so RoleBasedIndex renders the correct overview */
+  const handleRoleSwitch = (newRole: string) => {
+    setRole(newRole as Parameters<typeof setRole>[0]);
+    navigate('/dashboard');
+  };
 
   // Sheet open = either user-opened OR tour-controlled
   const sheetOpen = localMobileOpen || mobileMenuOpen;
@@ -205,7 +212,7 @@ export function TopBar() {
             {ROLES.map(r => (
               <DropdownMenuItem
                 key={r.id}
-                onClick={() => setRole(r.id)}
+                onClick={() => handleRoleSwitch(r.id)}
                 className={cn('cursor-pointer', role === r.id && 'font-medium text-primary')}
               >
                 {r.label}
