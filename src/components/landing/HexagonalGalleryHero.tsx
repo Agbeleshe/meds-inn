@@ -287,14 +287,14 @@ export function HexagonalGalleryHero() {
         {/* Honeycomb is absolute background; bleeds left+right for a wider, balanced shape */}
         <div className="lg:hidden relative h-full overflow-hidden">
 
-          {/* Background: honeycomb stretched wider than the viewport (-10% each side) */}
+          {/* Background: honeycomb stretched wider than the viewport (-25% each side) */}
           <div
             className="absolute top-0 bottom-0"
             style={{
-              left: '-10%',
-              right: '-10%',
-              width: '120%',
-              '--hex-w': 'calc((120vw - 5 * var(--hex-gap)) / 4)',
+              left: '-25%',
+              right: '-25%',
+              width: '150%',
+              '--hex-w': 'calc((150vw - 5 * var(--hex-gap)) / 4)',
             } as React.CSSProperties}
           >
             <ScrollingHoneycombPanel onOpen={openLightbox} />
