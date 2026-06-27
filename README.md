@@ -128,3 +128,5 @@ Or use the **Seed demo data** button on Dashboard → Architecture.
 │   └── main.tsx     Entry point
 └── vite.config.ts   Vite configuration
 ```
+
+push
