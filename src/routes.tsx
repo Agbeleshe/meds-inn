@@ -10,6 +10,8 @@ export interface RouteConfig {
 export const routes: RouteConfig[] = [
   { name: 'Landing', path: '/', public: true },
   { name: 'Login', path: '/login', public: true },
+  { name: 'Sign up', path: '/signup', public: true },
+  { name: 'Architecture', path: '/architecture', public: true },
   { name: 'Overview', path: '/dashboard' },
   { name: 'Mother Dashboard', path: '/dashboard/mother' },
   { name: 'Mothers', path: '/dashboard/mothers' },
@@ -25,6 +27,5 @@ export const routes: RouteConfig[] = [
   { name: 'Documents', path: '/dashboard/documents' },
   { name: 'Analytics', path: '/dashboard/analytics' },
   { name: 'Team', path: '/dashboard/team' },
-  { name: 'Architecture', path: '/dashboard/architecture' },
   { name: 'Settings', path: '/dashboard/settings' },
 ];

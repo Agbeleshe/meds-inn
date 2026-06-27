@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { PATIENTS, MEDICATIONS, APPOINTMENTS, LAB_RESULTS, DOCUMENTS, MESSAGES } from '@/lib/demo-data';
+import { useParams } from 'react-router-dom';
+import { LAB_RESULTS, DOCUMENTS, MESSAGES } from '@/lib/demo-data';
+import { useMother } from '@/hooks/use-mother';
+import { useAppointments } from '@/hooks/use-appointments';
+import { useMedications } from '@/hooks/use-medications';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { ACTIVE_HOSPITAL } from '@/lib/hospitals';
 import { RiskBadge, AdherenceBadge } from '@/components/common/Badges';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,8 +21,6 @@ import {
   Clock, CheckCircle2, AlertCircle, ChevronRight, Stethoscope,
   Baby, User, Syringe
 } from 'lucide-react';
-
-const patient = PATIENTS[0]; // Amina Bello
 
 const QUICK_ACTIONS = [
   { icon: Calendar, label: 'Schedule Appointment', color: 'text-primary', action: 'schedule' },
@@ -52,13 +56,35 @@ const SYMPTOM_LOG = [
 ];
 
 export default function MotherProfilePage() {
+  const { id } = useParams<{ id: string }>();
+  const { data: patient, loading, source } = useMother(id);
+  const { appointments: patientAppointments } = useAppointments(id);
+  const { medications: patientMedications } = useMedications(id);
   const [tab, setTab] = useState('overview');
+
+  if (loading && !patient) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <div className="text-center py-24 text-muted-foreground">
+        <p>Mother profile not found.</p>
+      </div>
+    );
+  }
+
+  const p = patient;
 
   function handleQuickAction(action: string) {
     const messages: Record<string, string> = {
       schedule: 'Opening appointment scheduler…',
       video: 'Initiating video consultation…',
-      reminder: 'Reminder sent to Amina Bello.',
+      reminder: `Reminder sent to ${p.name}.`,
       note: 'Nurse note panel opened.',
       upload: 'Upload dialog opened.',
       escalate: 'Case escalation form opened.',
@@ -69,6 +95,9 @@ export default function MotherProfilePage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <DataSourceBadge source={source} loading={loading} />
+      </div>
       {/* Header */}
       <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex flex-col md:flex-row md:items-start gap-6">
@@ -84,7 +113,7 @@ export default function MotherProfilePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-2 text-sm mt-3">
               {[
                 { label: 'Age', value: `${patient.age} years` },
-                { label: 'Hospital', value: 'Elara Women\'s Specialist Clinic' },
+                { label: 'Hospital', value: ACTIVE_HOSPITAL.name },
                 { label: 'Pregnancy Stage', value: `${patient.gestationalWeek} weeks — ${patient.trimester} Trimester` },
                 { label: 'EDD', value: patient.edd },
                 { label: 'Blood Group', value: patient.bloodGroup },
@@ -150,12 +179,12 @@ export default function MotherProfilePage() {
       </div>
 
       {/* Current concerns */}
-      {patient.concerns.length > 0 && (
+      {(patient.concerns ?? []).length > 0 && (
         <div className="flex items-start gap-3 bg-[hsl(38_92%_97%)] border border-[hsl(38_92%_80%)] rounded-lg px-4 py-3">
           <AlertCircle className="w-4 h-4 text-[hsl(38_70%_40%)] mt-0.5 shrink-0" />
           <div>
             <p className="text-xs font-semibold text-[hsl(38_70%_30%)]">Current concerns</p>
-            <p className="text-xs text-[hsl(38_70%_35%)] mt-0.5">{patient.concerns.join(' · ')}</p>
+            <p className="text-xs text-[hsl(38_70%_35%)] mt-0.5">{(patient.concerns ?? []).join(' · ')}</p>
           </div>
         </div>
       )}
@@ -196,7 +225,7 @@ export default function MotherProfilePage() {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Upcoming Appointments</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                {APPOINTMENTS.filter(a => a.patientId === patient.id).slice(0, 3).map(a => (
+                {patientAppointments.filter(a => a.patientId === patient.id).slice(0, 3).map(a => (
                   <div key={a.id} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center shrink-0">
                       <Calendar className="w-3.5 h-3.5 text-primary" />
@@ -249,7 +278,7 @@ export default function MotherProfilePage() {
 
         {/* Medications */}
         <TabsContent value="medications" className="mt-4 space-y-3">
-          {MEDICATIONS.map(m => (
+          {patientMedications.filter(m => m.patientId === patient.id).map(m => (
             <Card key={m.id}>
               <CardContent className="pt-4 pb-4">
                 <div className="flex flex-col md:flex-row md:items-start gap-4">

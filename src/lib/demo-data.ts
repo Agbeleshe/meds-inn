@@ -1,16 +1,47 @@
-// Meds-inn Demo Data — consistent across all pages
+// Meds-inn Demo Data — consistent across all pages (seed source until Phase 8)
 
-export type Role = 'admin' | 'nurse' | 'doctor' | 'mother';
-export type RiskLevel = 'low' | 'moderate' | 'high';
-export type AppointmentStatus = 'scheduled' | 'completed' | 'missed' | 'cancelled';
-export type PatientStatus = 'active-pregnancy' | 'postpartum' | 'new' | 'missed-followup';
+export type {
+  Role,
+  RiskLevel,
+  AppointmentStatus,
+  PatientStatus,
+  TeamRole,
+  TeamStatus,
+  DocumentStatus,
+  LabFlag,
+  VaccinationStatus,
+  Hospital,
+  UserProfile,
+  Mother,
+  Appointment,
+  Medication,
+  Message,
+  MessageThreadEntry,
+  LabResult,
+  Document,
+  TeamMember,
+  DashboardMetrics,
+  VaccinationEntry,
+  MilestoneEntry,
+} from "@/types/clinical";
 
-export const HOSPITAL = {
-  name: 'Elara Women\'s Specialist Clinic',
-  shortName: 'Elara WSC',
-  id: 'ELR',
-  location: 'Global Demo',
-};
+import type {
+  Role,
+  RiskLevel,
+  AppointmentStatus,
+  PatientStatus,
+  TeamMember,
+  Message,
+  Document,
+  VaccinationEntry,
+  MilestoneEntry,
+  Hospital,
+} from "@/types/clinical";
+
+import { HOSPITALS } from "./hospitals";
+
+/** @deprecated Use HOSPITALS[0] — kept for legacy imports */
+export const HOSPITAL = HOSPITALS[0];
 
 export const ROLES = [
   {
@@ -46,22 +77,6 @@ export const ROLES = [
     email: 'sofia.marchetti@patient.elara-wsc.com',
   },
 ];
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  role: 'admin' | 'doctor' | 'nurse';
-  specialty: string;
-  initials: string;
-  assignedMothers: number;
-  activeFollowUps: number;
-  workloadPct: number;
-  status: 'active' | 'away' | 'offline';
-  email: string;
-  phone: string;
-  lastActive: string;
-  permission: string;
-}
 
 export const TEAM_MEMBERS: TeamMember[] = [
   { id: 'tm1', name: 'Diana Harrington', role: 'admin', specialty: 'Clinic Administrator', initials: 'DH', assignedMothers: 0, activeFollowUps: 0, workloadPct: 40, status: 'active', email: 'diana.harrington@elara-wsc.com', phone: '+1 212 555 0170', lastActive: '2h ago', permission: 'Full Access' },
@@ -348,20 +363,6 @@ export const MEDICATIONS = [
   { id: 'med4', name: 'Vitamin D3', dosage: '1000 IU', frequency: 'Once daily', route: 'Oral', instructions: 'Take with a meal containing fat for better absorption.', startDate: '2026-04-01', endDate: '2026-10-14', prescribedBy: 'Dr. Priya Sharma', adherence: 88, missedDoses: 6, lastTaken: '2026-06-25T07:30:00', notes: 'Check levels at 28-week visit.', patientId: 'MED-ELR-24018' },
 ];
 
-export interface Message {
-  id: string;
-  from: string;
-  role: string;
-  initials: string;
-  subject: string;
-  preview: string;
-  time: string;
-  read: boolean;
-  urgent: boolean;
-  tag: string;
-  thread: { from: string; role: string; time: string; text: string }[];
-}
-
 export const MESSAGES: Message[] = [
   {
     id: 'msg1',
@@ -449,17 +450,6 @@ export const LAB_RESULTS = [
   { id: 'lab4', test: 'Hepatitis B Surface Antigen', date: '2026-04-10', result: 'Negative', status: 'reviewed', flag: 'normal', notes: 'Negative — no intervention required.', orderedBy: 'Dr. Priya Sharma' },
 ];
 
-export interface Document {
-  id: string;
-  name: string;
-  category: string;
-  date: string;
-  uploadedBy: string;
-  size: string;
-  type: string;
-  status: 'reviewed' | 'pending' | 'archived' | 'signed';
-}
-
 export const DOCUMENTS: Document[] = [
   { id: 'doc1', name: '20-Week Anomaly Scan Report', category: 'Ultrasound', date: '2026-06-01', uploadedBy: 'Imaging Suite, Elara WSC', size: '2.4 MB', type: 'PDF', status: 'reviewed' },
   { id: 'doc2', name: 'Full Blood Count — June 20', category: 'Lab Results', date: '2026-06-20', uploadedBy: 'Lab Services', size: '0.8 MB', type: 'PDF', status: 'reviewed' },
@@ -517,14 +507,6 @@ export const ANALYTICS_DATA = {
   ],
 };
 
-export interface VaccinationEntry {
-  ageLabel: string;
-  vaccine: string;
-  dueDate: string;
-  givenDate: string | null;
-  status: 'given' | 'due' | 'upcoming';
-}
-
 export const VACCINATION_SCHEDULE: VaccinationEntry[] = [
   { ageLabel: 'Birth', vaccine: 'BCG, Hepatitis B (birth dose), Vitamin K', dueDate: '2026-10-14', givenDate: '2026-10-14', status: 'given' },
   { ageLabel: '6 weeks', vaccine: 'DTaP, Hib, IPV, PCV13, Rotavirus, Hepatitis B', dueDate: '2026-11-25', givenDate: '2026-11-26', status: 'given' },
@@ -534,13 +516,6 @@ export const VACCINATION_SCHEDULE: VaccinationEntry[] = [
   { ageLabel: '9 months', vaccine: 'Measles, Yellow fever', dueDate: '2027-07-14', givenDate: null, status: 'upcoming' },
   { ageLabel: '12 months', vaccine: 'MMR (Measles, Mumps, Rubella), Varicella', dueDate: '2027-10-14', givenDate: null, status: 'upcoming' },
 ];
-
-export interface MilestoneEntry {
-  ageLabel: string;
-  milestone: string;
-  achieved: boolean;
-  achievedDate?: string;
-}
 
 export const GROWTH_MILESTONES: MilestoneEntry[] = [
   { ageLabel: '1 month', milestone: 'Responds to sounds, briefly lifts head when on tummy', achieved: true, achievedDate: 'Nov 18, 2026' },

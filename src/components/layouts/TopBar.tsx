@@ -6,11 +6,14 @@ import { NAV_ITEMS, MOTHER_NAV_ITEMS } from '@/lib/nav-items';
 import { useApp } from '@/contexts/AppContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTour } from '@/contexts/TourContext';
-import { HOSPITAL, ROLES } from '@/lib/demo-data';
+import { HOSPITAL } from '@/lib/demo-data';
+import { ROLE_LABELS } from '@/lib/demo-users';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
-  Search, Bell, ChevronDown, Menu, HeartPulse, Sun, Moon, MapPin, Info
+  Search, Bell, ChevronDown, Menu, Sun, Moon, MapPin, Info
 } from 'lucide-react';
+import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -23,17 +26,18 @@ import { slideDown } from '@/lib/animations';
 import { NAV_DESCRIPTIONS } from '@/lib/nav-descriptions';
 
 export function TopBar() {
-  const { role, setRole, currentUser } = useApp();
+  const { role, currentUser } = useApp();
+  const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { startTour, startElementTour, mobileMenuOpen, setMobileMenuOpen } = useTour();
   const [localMobileOpen, setLocalMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  /** Switch role AND navigate to /dashboard so RoleBasedIndex renders the correct overview */
-  const handleRoleSwitch = (newRole: string) => {
-    setRole(newRole as Parameters<typeof setRole>[0]);
-    navigate('/dashboard');
+  /** Sign out and return to login */
+  const handleSignOut = () => {
+    signOut();
+    navigate('/login');
   };
 
   // Sheet open = either user-opened OR tour-controlled
@@ -74,11 +78,8 @@ export function TopBar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0 bg-sidebar">
-          <div className="flex items-center gap-2.5 h-16 px-4 border-b border-sidebar-border">
-            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-              <HeartPulse className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="text-sidebar-primary-foreground font-semibold text-base">Meds-inn</span>
+          <div className="flex items-center h-16 px-4 border-b border-sidebar-border">
+            <Logo size="md" variant="dark" wordmarkClassName="text-sidebar-primary-foreground" />
           </div>
           <div className="px-4 py-3 border-b border-sidebar-border">
             <p className="text-xs text-sidebar-foreground/60">{HOSPITAL.name}</p>
@@ -139,7 +140,7 @@ export function TopBar() {
       <div className="flex items-center gap-2 ml-auto">
         {/* Role badge */}
         <span className={cn('hidden sm:inline-flex items-center px-2.5 py-1 rounded text-xs font-medium', roleColors[role])}>
-          {ROLES.find(r => r.id === role)?.label}
+          {ROLE_LABELS[role]}
         </span>
 
         {/* Tour button */}
@@ -208,20 +209,8 @@ export function TopBar() {
               <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wide">Switch Role (Demo)</DropdownMenuLabel>
-            {ROLES.map(r => (
-              <DropdownMenuItem
-                key={r.id}
-                onClick={() => handleRoleSwitch(r.id)}
-                className={cn('cursor-pointer', role === r.id && 'font-medium text-primary')}
-              >
-                {r.label}
-                {role === r.id && <span className="ml-auto text-primary">✓</span>}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/">Sign out</Link>
+            <DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -3,9 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import IntersectObserver from '@/components/common/IntersectObserver';
 import { Toaster } from '@/components/ui/sonner';
 import { AppProvider } from '@/contexts/AppContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TourProvider } from '@/contexts/TourContext';
+import { RouteGuard } from '@/components/common/RouteGuard';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { SiteLayout } from '@/components/layouts/SiteLayout';
 import { SplashScreen } from '@/components/SplashScreen';
 import { CookieConsentModal } from '@/components/CookieConsentModal';
 import { HEX_IMAGES } from '@/components/landing/HexagonalGalleryHero';
@@ -15,6 +18,7 @@ import type { PreloadProgress } from '@/lib/preloadImages';
 // Public pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import CookiePolicyPage from './pages/CookiePolicyPage';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
@@ -35,6 +39,7 @@ import DocumentsPage from './pages/DocumentsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TeamPage from './pages/TeamPage';
 import ArchitecturePage from './pages/ArchitecturePage';
+import MotherOnboardingPage from './pages/MotherOnboardingPage';
 import MotherDashboardPage from './pages/MotherDashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import { RoleBasedIndex } from './components/RoleBasedIndex';
@@ -56,6 +61,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider>
+      <AuthProvider>
       <TourProvider>
       <AppProvider>
         {!splashDone && (
@@ -69,13 +75,26 @@ const App: React.FC = () => {
         <Router>
         {splashDone && <CookieConsentModal />}
         <IntersectObserver />
+        <RouteGuard>
         <Routes>
           {/* Public */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/cookies" element={<CookiePolicyPage />} />
           <Route path="/terms" element={<TermsAndConditionsPage />} />
+
+          {/* Public site layout (nav + footer) */}
+          <Route element={<SiteLayout />}>
+            <Route path="/architecture" element={<ArchitecturePage />} />
+          </Route>
+
+          {/* Legacy dashboard URL */}
+          <Route path="/dashboard/architecture" element={<Navigate to="/architecture" replace />} />
+
+          {/* Mother onboarding — full screen, no sidebar */}
+          <Route path="/dashboard/onboarding" element={<MotherOnboardingPage />} />
 
           {/* Dashboard — nested under layout (Outlet renders child) */}
           <Route path="/dashboard" element={<DashboardLayout />}>
@@ -94,17 +113,18 @@ const App: React.FC = () => {
             <Route path="documents" element={<DocumentsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="team" element={<TeamPage />} />
-            <Route path="architecture" element={<ArchitecturePage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </RouteGuard>
         <Toaster richColors position="top-right" />
         </Router>
       </AppProvider>
       </TourProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 };

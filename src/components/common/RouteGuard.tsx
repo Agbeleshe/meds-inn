@@ -1,24 +1,22 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { routes } from '@/routes';
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { routes } from "@/routes";
+import { canAccessPath, defaultDashboardPath } from "@/lib/route-access";
 
 interface RouteGuardProps {
   children: React.ReactNode;
 }
 
-// System-level public routes (no need to register in routes.tsx)
-const SYSTEM_PUBLIC_ROUTES = ['/login', '/403', '/404'];
+const SYSTEM_PUBLIC_ROUTES = ["/login", "/403", "/404"];
 
-// Derived from routes.tsx: all routes marked with public: true
-const routePublicPaths = routes.filter(r => r.public).map(r => r.path);
-
+const routePublicPaths = routes.filter((r) => r.public).map((r) => r.path);
 const PUBLIC_ROUTES = [...SYSTEM_PUBLIC_ROUTES, ...routePublicPaths];
 
 function matchPublicRoute(path: string, patterns: string[]) {
-  return patterns.some(pattern => {
-    if (pattern.includes('*')) {
-      const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
+  return patterns.some((pattern) => {
+    if (pattern.includes("*")) {
+      const regex = new RegExp(`^${pattern.replace("*", ".*")}$`);
       return regex.test(path);
     }
     return path === pattern;
@@ -34,16 +32,43 @@ export function RouteGuard({ children }: RouteGuardProps) {
     if (loading) return;
 
     const isPublic = matchPublicRoute(location.pathname, PUBLIC_ROUTES);
+    const isDashboard = location.pathname.startsWith("/dashboard");
 
-    if (!user && !isPublic) {
-      navigate('/login', { state: { from: location.pathname }, replace: true });
+    if (!user && isDashboard) {
+      navigate("/login", { state: { from: location.pathname }, replace: true });
+      return;
+    }
+
+    if (user && (location.pathname === "/login" || location.pathname === "/signup")) {
+      navigate(defaultDashboardPath(user.role, user.onboardingComplete), { replace: true });
+      return;
+    }
+
+    if (user?.role === "mother" && user.onboardingComplete === false) {
+      if (!location.pathname.startsWith("/dashboard/onboarding")) {
+        navigate("/dashboard/onboarding", { replace: true });
+        return;
+      }
+    }
+
+    if (
+      user?.role === "mother" &&
+      user.onboardingComplete !== false &&
+      location.pathname.startsWith("/dashboard/onboarding")
+    ) {
+      navigate("/dashboard/mother", { replace: true });
+      return;
+    }
+
+    if (user && isDashboard && !canAccessPath(user.role, location.pathname)) {
+      navigate(defaultDashboardPath(user.role, user.onboardingComplete), { replace: true });
     }
   }, [user, loading, location.pathname, navigate]);
 
-  if (loading) {
+  if (loading && location.pathname.startsWith("/dashboard")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }

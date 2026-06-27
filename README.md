@@ -1,92 +1,130 @@
-# Welcome to Your Miaoda Project
+# Meds-inn
 
-## Project Info
+Hospital-driven maternal and child-care coordination platform.
 
-## Project Directory
-
-```
-├── README.md # Documentation
-├── components.json # Component library configuration
-├── index.html # Entry file
-├── package.json # Package management
-├── postcss.config.js # PostCSS configuration
-├── public # Static resources directory
-│   ├── favicon.png # Icon
-│   └── images # Image resources
-├── src # Source code directory
-│   ├── App.tsx # Entry file
-│   ├── components # Components directory
-│   ├── context # Context directory
-│   ├── db # Database configuration directory
-│   ├── hooks # Common hooks directory
-│   ├── index.css # Global styles
-│   ├── layout # Layout directory
-│   ├── lib # Utility library directory
-│   ├── main.tsx # Entry file
-│   ├── routes.tsx # Routing configuration
-│   ├── pages # Pages directory
-│   ├── services # Database interaction directory
-│   ├── types # Type definitions directory
-├── tsconfig.app.json # TypeScript frontend configuration file
-├── tsconfig.json # TypeScript configuration file
-├── tsconfig.node.json # TypeScript Node.js configuration file
-└── vite.config.ts # Vite configuration file
-```
+**AWS migration plan (chat catch-up):** [`MIGRATION-PLAN.md`](./MIGRATION-PLAN.md)
 
 ## Tech Stack
 
 Vite, TypeScript, React, Supabase
 
-## Development Guidelines
+## Getting Started
 
-### How to edit code locally?
+### Requirements
 
-You can choose [VSCode](https://code.visualstudio.com/Download) or any IDE you prefer. The only requirement is to have Node.js and npm installed.
+- Node.js ≥ 20
+- npm ≥ 10
 
-### Environment Requirements
+### Setup
 
-```
-# Node.js ≥ 20
-# npm ≥ 10
-Example:
-# node -v   # v20.18.3
-# npm -v    # 10.8.2
+```bash
+npm install
+npm run dev
 ```
 
-### Installing Node.js on Windows
+Open **http://127.0.0.1:5173/** — runs Vite and `/api` routes (DynamoDB) together.
 
-```
-# Step 1: Visit the Node.js official website: https://nodejs.org/, click download. The website will automatically suggest a suitable version (32-bit or 64-bit) for your system.
-# Step 2: Run the installer: Double-click the downloaded installer to run it.
-# Step 3: Complete the installation: Follow the installation wizard to complete the process.
-# Step 4: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
-```
+(Vercel blocks putting `vercel dev` directly in the `dev` script, so a small wrapper in `scripts/dev.mjs` starts it.)
 
-### Installing Node.js on macOS
+Use `npm run dev:ui` for UI-only with built-in demo data (no AWS).
 
-```
-# Step 1: Using Homebrew (Recommended method): Open Terminal. Type the command `brew install node` and press Enter. If Homebrew is not installed, you need to install it first by running the following command in Terminal:
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-Alternatively, use the official installer: Visit the Node.js official website. Download the macOS .pkg installer. Open the downloaded .pkg file and follow the prompts to complete the installation.
-# Step 2: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
-```
+### Scripts
 
-### After installation, follow these steps:
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | App + DynamoDB API at **http://127.0.0.1:5173** |
+| `npm run dev:ui` | UI only at 5173 (no AWS; uses built-in demo data) |
+| `npm run build` | Create a production build |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run type-check, lint, and build validation |
 
-```
-# Step 1: Download the code package
-# Step 2: Extract the code package
-# Step 3: Open the code package with your IDE and navigate into the code directory
-# Step 4: In the IDE terminal, run the command to install dependencies: npm i
-# Step 5: In the IDE terminal, run the command to start the development server: npm run dev -- --host 127.0.0.1
-# Step 6: if step 5 failed, try this command to start the development server: npx vite --host 127.0.0.1
+## Hackathon: Vercel + AWS (DynamoDB)
+
+This project is **Vite + React**, not Next.js. The architecture is the same for judges:
+
+```txt
+Cursor → React/Vite code
+Vercel → deployment + env vars + serverless API routes
+AWS → DynamoDB (via Vercel Storage integration)
 ```
 
-### How to develop backend services?
+**Important:** DynamoDB credentials stay on the server. The browser calls `/api/*` routes; it never talks to AWS directly.
 
-Configure environment variables and install relevant dependencies.If you need to use a database, please use the official version of Supabase.
+### 1. Link to Vercel (in Cursor terminal)
 
-## Learn More
+Vercel is installed **locally** in this project (no global install needed):
 
-You can also check the help documentation: Download and Building the app（ [https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en](https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en)）to learn more detailed content.
-Deployment trigger
+```bash
+npm run vercel:login
+npm run vercel:link
+```
+
+Or use `npx vercel login` and `npx vercel link` directly.
+
+### 2. Create DynamoDB in Vercel
+
+Vercel Dashboard → your project → **Storage** → create/connect **DynamoDB**.
+
+Uses Vercel OIDC + single table `meds-inn-db` with `PK` / `SK` keys.
+
+### 3. Pull env vars into Cursor
+
+```bash
+npm run vercel:env
+```
+
+Copy `.env.example` for reference. **Do not commit `.env.local`** (already gitignored via `*.local`).
+
+### 4. Run locally with API routes
+
+```bash
+npm install
+npm run dev
+```
+
+Use `npm run dev` — not `dev:ui` — when testing DynamoDB locally.
+
+### 5. Optional AWS CLI (separate account for S3, Bedrock, etc.)
+
+```bash
+aws configure --profile meds-in
+export AWS_PROFILE=meds-in
+aws sts get-caller-identity
+```
+
+Use the **Vercel integration account** for DynamoDB. Use your own AWS account for S3, Bedrock, SES/SNS, Chime if needed.
+
+### Project layout
+
+```txt
+api/lib/dynamodb.ts   — server-side DynamoDB client
+api/mothers.ts        — GET /api/mothers
+api/appointments.ts   — GET /api/appointments
+api/seed.ts           — POST /api/seed (load demo data)
+api/health.ts         — GET /api/health
+src/lib/api-client.ts — browser fetch helper
+src/hooks/use-mothers.ts — DynamoDB with demo fallback
+vercel.json           — SPA routing + API passthrough
+```
+
+### Seed demo data (after DynamoDB is connected)
+
+```bash
+curl -X POST http://localhost:3000/api/seed
+```
+
+Or use the **Seed demo data** button on Dashboard → Architecture.
+
+## Project Structure
+
+```
+├── public/          Static assets
+├── src/
+│   ├── components/  UI and layout components
+│   ├── contexts/    React context providers
+│   ├── lib/         Utilities and shared data
+│   ├── pages/       Route pages
+│   ├── App.tsx      App shell and routing
+│   └── main.tsx     Entry point
+└── vite.config.ts   Vite configuration
+```

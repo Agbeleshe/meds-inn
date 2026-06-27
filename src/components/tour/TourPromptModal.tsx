@@ -9,7 +9,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HeartPulse, Sparkles, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
+import { LogoMark } from '@/components/common/Logo';
 
 const PROMPT_KEY = 'medinn_tour_prompt_seen';
 
@@ -76,9 +77,7 @@ export function TourPromptModal({ onAccept, onDecline }: TourPromptModalProps) {
               {/* Header */}
               <div className="flex items-start justify-between px-6 pt-5 pb-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <HeartPulse className="w-5 h-5 text-primary" />
-                  </div>
+                  <LogoMark size="lg" />
                   <div>
                     <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-0.5">
                       Welcome to Meds-inn
@@ -135,7 +134,7 @@ export function TourPromptModal({ onAccept, onDecline }: TourPromptModalProps) {
                   onClick={() => dismiss(true)}
                   className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
                 >
-                  <HeartPulse className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4" />
                   Yes, show me around
                 </button>
                 <button

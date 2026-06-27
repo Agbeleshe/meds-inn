@@ -1,0 +1,51 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { findUserByCredentials, stripSensitive } from "../lib/auth";
+import { findDemoUserRecord, getDemoUserRecordById } from "../lib/demo-auth";
+import { json, methodNotAllowed, readBody } from "../lib/handler";
+
+interface LoginBody {
+  username?: string;
+  password?: string;
+  role?: string;
+  hospitalId?: string;
+}
+
+/** POST /api/auth/login — username (full name) + password + role + hospital */
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
+
+  const body = await readBody<LoginBody>(req);
+  const username = body?.username?.trim();
+  const password = body?.password;
+  const role = body?.role;
+  const hospitalId = body?.hospitalId;
+
+  if (!username || !password || !role || !hospitalId) {
+    return json(res, 400, {
+      error: "Username, password, role, and hospital are required",
+    });
+  }
+
+  try {
+    const record = await findUserByCredentials(username, role, hospitalId);
+    if (!record || String(record.password) !== password) {
+      return json(res, 401, { error: "Invalid credentials for this role and hospital" });
+    }
+
+    const user = stripSensitive(record);
+    const token = String(user.id);
+    const source = getDemoUserRecordById(token) ? "demo" : "dynamodb";
+
+    return json(res, 200, { user, token, source });
+  } catch (error) {
+    console.error("Login failed:", error);
+    const demo = findDemoUserRecord(username, role, hospitalId);
+    if (demo && String(demo.password) === password) {
+      const user = stripSensitive(demo);
+      return json(res, 200, { user, token: String(user.id), source: "demo" });
+    }
+    return json(res, 503, {
+      error: "Sign-in service unavailable. Check your network or run npm run vercel:env",
+    });
+  }
+}

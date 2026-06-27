@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMyMotherProfile } from '@/hooks/use-mother';
+import { ACTIVE_HOSPITAL } from '@/lib/hospitals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,8 +46,15 @@ const EDUCATION = [
 ];
 
 export default function MotherDashboardPage() {
+  const { user } = useAuth();
+  const { data: profile, loading } = useMyMotherProfile(user?.motherId);
   const [meds, setMeds] = useState(MED_LIST);
   const [checklist, setChecklist] = useState(CARE_CHECKLIST);
+
+  const firstName = user?.firstName ?? user?.name?.split(' ')[0] ?? 'there';
+  const weeks = profile?.gestationalWeek ?? user?.gestationalWeeks ?? 0;
+  const trimester = profile?.trimester ?? 'Second';
+  const progressPct = weeks > 0 ? Math.min(100, Math.round((weeks / 40) * 100)) : 0;
 
   const takenCount = meds.filter(m => m.taken).length;
   const adherencePct = Math.round((takenCount / meds.length) * 100);
@@ -58,6 +68,14 @@ export default function MotherDashboardPage() {
     setChecklist(prev => prev.map((c, idx) => idx === i ? { ...c, done: !c.done } : c));
   }
 
+  if (loading && !profile) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* Warm greeting */}
@@ -67,10 +85,16 @@ export default function MotherDashboardPage() {
             <Heart className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground">Good morning, Amina</h1>
+            <h1 className="text-lg font-bold text-foreground">Good morning, {firstName}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              You are <span className="font-semibold text-primary">24 weeks pregnant</span> — well into your second trimester.
-              Your care team at Elara is with you every step of the way.
+              {weeks > 0 ? (
+                <>
+                  You are <span className="font-semibold text-primary">{weeks} weeks pregnant</span> — {trimester.toLowerCase()} trimester.
+                </>
+              ) : (
+                <>Welcome to your postpartum care journey.</>
+              )}{' '}
+              Your care team at {ACTIVE_HOSPITAL.shortName} is with you every step of the way.
             </p>
           </div>
         </div>
@@ -81,14 +105,14 @@ export default function MotherDashboardPage() {
         <Card className="border-primary/20">
           <CardContent className="pt-5 pb-5">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Pregnancy week</p>
-            <p className="text-4xl font-bold text-primary tabular-nums">24</p>
-            <p className="text-xs text-muted-foreground mt-1">Second trimester</p>
+            <p className="text-4xl font-bold text-primary tabular-nums">{weeks || '—'}</p>
+            <p className="text-xs text-muted-foreground mt-1">{trimester} trimester</p>
             <div className="mt-3">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-muted-foreground">Progress</span>
-                <span className="text-xs font-medium text-foreground">~60%</span>
+                <span className="text-xs font-medium text-foreground">~{progressPct}%</span>
               </div>
-              <Progress value={60} className="h-1.5" />
+              <Progress value={progressPct} className="h-1.5" />
             </div>
           </CardContent>
         </Card>

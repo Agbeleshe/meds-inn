@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { MEDICATIONS } from '@/lib/demo-data';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMedications } from '@/hooks/use-medications';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { MedCardListSkeleton } from '@/components/common/TableSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +24,9 @@ const TODAY_MEDS = [
 ];
 
 export default function MedicationRemindersPage() {
+  const { user } = useAuth();
+  const patientId = user?.role === 'mother' ? user.motherId : 'MED-ELR-24018';
+  const { medications: MEDICATIONS, source, loading } = useMedications(patientId);
   const [view, setView] = useState<ViewMode>('clinician');
   const [takenState, setTakenState] = useState<Record<string, boolean | 'skipped'>>(
     { med1: true, med2: true, med5: true }
@@ -43,8 +49,11 @@ export default function MedicationRemindersPage() {
       <div data-tour="medications-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Medication Reminders</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Amina Bello · MED-ELR-24018</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {user?.role === 'mother' ? `${user.name} · ${patientId}` : 'All enrolled mothers'}
+          </p>
         </div>
+        <DataSourceBadge source={source} loading={loading} />
         <div className="flex items-center gap-3">
           <Tabs value={view} onValueChange={v => setView(v as ViewMode)}>
             <TabsList className="h-9">
@@ -73,7 +82,9 @@ export default function MedicationRemindersPage() {
       {view === 'clinician' ? (
         /* ── CLINICIAN VIEW ── */
         <div data-tour="medications-adherence" className="space-y-4">
-          {MEDICATIONS.map(med => (
+          {loading ? (
+            <MedCardListSkeleton count={4} />
+          ) : MEDICATIONS.map(med => (
             <Card key={med.id}>
               <CardContent className="pt-5 pb-5">
                 <div className="flex flex-col md:flex-row md:items-start gap-5">

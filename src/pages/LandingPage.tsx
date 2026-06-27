@@ -2,11 +2,13 @@ import React, { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { HeartPulse, ArrowRight, CheckCircle2, ShieldCheck, Stethoscope, Users2, CalendarClock, Sparkles, Video, Bell, BarChart3, FolderOpen, Database, Cloud, Zap, Mail, Quote, Sun, Moon } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
+import { ArrowRight, CheckCircle2, ShieldCheck, Stethoscope, Users2, CalendarClock, Sparkles, Video, Bell, BarChart3, FolderOpen, Database, Cloud, Zap, Mail, Quote } from 'lucide-react';
+import { PublicNav } from '@/components/layouts/PublicNav';
+import { Logo } from '@/components/common/Logo';
 import { HexagonalGalleryHero } from '@/components/landing/HexagonalGalleryHero';
 import { GuidanceBot } from '@/components/landing/GuidanceBot';
-import { fadeUp, fadeIn, staggerContainer, staggerSlow, slideDown, scaleIn, viewport } from '@/lib/animations';
+import { fadeUp, fadeIn, staggerContainer, staggerSlow, scaleIn, viewport } from '@/lib/animations';
+import { LANDING_IMAGES } from '@/lib/site-images';
 
 const PROBLEMS = [
   'Mothers leave the clinic with instructions but no support system at home.',
@@ -40,7 +42,7 @@ const WORKFLOW_STEPS = [
     role: 'Hospital Admin',
     desc: 'Hospital staff enrol mothers at booking. Care plans, reminders, and team assignments are set up immediately.',
     color: 'bg-[hsl(173_79%_24%)]',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_fc0b4933-e01d-4fe5-bdc9-42c506fac535.jpg',
+    img: LANDING_IMAGES.workflow.enrol,
   },
   {
     step: '02',
@@ -48,7 +50,7 @@ const WORKFLOW_STEPS = [
     role: 'Nurse / Midwife',
     desc: 'Nurses review daily care briefs, follow up on missed check-ins, and track medication adherence in real time.',
     color: 'bg-[hsl(207_85%_45%)]',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_3ddc9e2c-ec31-401f-915b-8905d5e90ae7.jpg',
+    img: LANDING_IMAGES.workflow.monitor,
   },
   {
     step: '03',
@@ -56,7 +58,7 @@ const WORKFLOW_STEPS = [
     role: 'Doctor',
     desc: 'Doctors conduct video consultations and receive AI-assisted summaries before each session.',
     color: 'bg-[hsl(38_53%_47%)]',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_755f0197-4351-4ccb-8dc6-7479783cc846.jpg',
+    img: LANDING_IMAGES.workflow.connect,
   },
   {
     step: '04',
@@ -64,7 +66,7 @@ const WORKFLOW_STEPS = [
     role: 'Mother',
     desc: 'Care continues seamlessly from pregnancy through delivery, postpartum recovery, and baby\'s first vaccinations.',
     color: 'bg-[hsl(142_63%_35%)]',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_b96611b0-ecff-4ff4-8a44-d1e9ae553627.jpg',
+    img: LANDING_IMAGES.workflow.continue,
   },
 ];
 
@@ -84,7 +86,7 @@ const TESTIMONIALS = [
     name: 'Dr. Sarah Okafor',
     role: 'Medical Director',
     org: 'Elara Women\'s Specialist Clinic, London',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_d53eb03c-23ee-46af-b6a7-36be3a4964d5.jpg',
+    img: LANDING_IMAGES.testimonials.doctor,
     type: 'hospital' as const,
   },
   {
@@ -92,7 +94,7 @@ const TESTIMONIALS = [
     name: 'Midwife Elena Costa',
     role: 'Head of Midwifery',
     org: 'Sunrise Maternity Centre, Toronto',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_1bd11433-b42e-43cd-95d2-fca294442593.jpg',
+    img: LANDING_IMAGES.testimonials.midwife,
     type: 'hospital' as const,
   },
   {
@@ -100,7 +102,7 @@ const TESTIMONIALS = [
     name: 'Sofia Marchetti',
     role: 'Mother, 29 weeks',
     org: 'Enrolled at Elara WSC, Milan',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_d64109aa-a7b6-43e7-91f6-6d8e5fb95b3c.jpg',
+    img: LANDING_IMAGES.testimonials.motherPregnant,
     type: 'mother' as const,
   },
   {
@@ -108,7 +110,7 @@ const TESTIMONIALS = [
     name: 'Mei Lin Zhang',
     role: 'Mother, postpartum',
     org: 'Enrolled at Bright Start Clinic, Singapore',
-    img: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_b1efac81-5850-4f26-a683-3be6c2809eae.jpg',
+    img: LANDING_IMAGES.testimonials.motherPostpartum,
     type: 'mother' as const,
   },
 ];
@@ -168,22 +170,23 @@ function TestimonialCard({ t, index }: { t: typeof TESTIMONIALS[0]; index: numbe
 
   return (
     <motion.div
-      className={`rounded-xl border p-6 flex flex-col h-full ${accent}`}
-      variants={scaleIn}
+      className={`rounded-xl border p-5 sm:p-6 flex flex-col h-full min-w-0 w-full ${accent}`}
+      variants={fadeUp}
       initial="hidden"
       whileInView="visible"
       viewport={viewport}
       transition={{ delay: index * 0.08 }}
     >
       <Quote className="w-6 h-6 text-primary/30 mb-4 shrink-0" />
-      <p className="text-sm text-foreground leading-relaxed text-pretty flex-1 mb-5">"{t.quote}"</p>
-      <div className="flex items-center gap-3 mt-auto">
+      <p className="text-sm text-foreground leading-relaxed text-pretty break-words flex-1 mb-5">"{t.quote}"</p>
+      <div className="flex items-center gap-3 mt-auto min-w-0">
         <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-border">
           <img src={t.img} alt={t.name} className="w-full h-full object-cover" />
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{t.name}</p>
-          <p className="text-xs text-muted-foreground truncate">{t.role} · {t.org}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-foreground">{t.name}</p>
+          <p className="text-xs text-muted-foreground">{t.role}</p>
+          <p className="text-xs text-muted-foreground break-words">{t.org}</p>
         </div>
       </div>
     </motion.div>
@@ -191,8 +194,6 @@ function TestimonialCard({ t, index }: { t: typeof TESTIMONIALS[0]; index: numbe
 }
 
 export default function LandingPage() {
-  const { theme, toggleTheme } = useTheme();
-
   /** Smooth-scroll to a section, accounting for the 64 px sticky nav */
   const scrollTo = useCallback((id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -204,38 +205,8 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <motion.nav
-        className="sticky top-0 z-50 bg-card/90 backdrop-blur-sm border-b border-border"
-        variants={slideDown} initial="hidden" animate="visible"
-      >
-        <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-              <HeartPulse className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-base tracking-tight">Meds-inn</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#workflow"    onClick={scrollTo('workflow')}    className="hover:text-foreground transition-colors">Workflow</a>
-            <a href="#testimonials" onClick={scrollTo('testimonials')} className="hover:text-foreground transition-colors">Stories</a>
-            <a href="#features"   onClick={scrollTo('features')}    className="hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing"    onClick={scrollTo('pricing')}     className="hover:text-foreground transition-colors">Pricing</a>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-[hsl(38_85%_62%)]" /> : <Moon className="w-4 h-4" />}
-            </Button>
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-sm hidden sm:inline-flex">Sign in</Button>
-            </Link>
-            <Link to="/login">
-              <Button size="sm" className="text-sm">View demo</Button>
-            </Link>
-          </div>
-        </div>
-      </motion.nav>
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <PublicNav showLandingSections onScrollTo={scrollTo} />
 
       {/* ── Hero — Hexagonal Gallery ── */}
       <HexagonalGalleryHero />
@@ -369,10 +340,10 @@ export default function LandingPage() {
           variants={staggerContainer} initial="hidden" whileInView="visible" viewport={viewport}
         >
           <motion.div variants={scaleIn} className="aspect-[16/7] rounded-xl overflow-hidden border border-border">
-            <img src="https://miaoda-site-img.s3cdn.medo.dev/images/KLing_ae93649f-ea05-4166-9f90-84c363af7844.jpg" alt="Pregnant mother and nurse at antenatal clinic" className="w-full h-full object-cover" />
+            <img src={LANDING_IMAGES.antenatalClinic} alt="Pregnant mother and nurse at antenatal clinic" className="w-full h-full object-cover" />
           </motion.div>
           <motion.div variants={scaleIn} className="aspect-[16/7] rounded-xl overflow-hidden border border-border">
-            <img src="https://miaoda-site-img.s3cdn.medo.dev/images/KLing_94330f88-40e9-413b-aad4-dd790b2ac238.jpg" alt="Mother with newborn at hospital" className="w-full h-full object-cover" />
+            <img src={LANDING_IMAGES.motherNewborn} alt="Mother with newborn at hospital" className="w-full h-full object-cover" />
           </motion.div>
         </motion.div>
       </section>
@@ -402,7 +373,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section id="testimonials" className="max-w-6xl mx-auto px-4 md:px-8 py-20">
+      <section id="testimonials" className="max-w-6xl mx-auto w-full min-w-0 px-4 md:px-8 py-20">
         <motion.div className="max-w-xl mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewport}>
           <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 block">Stories</span>
           <h2 className="text-3xl font-bold text-foreground text-balance mb-3">
@@ -416,9 +387,11 @@ export default function LandingPage() {
         {/* Hospital testimonials */}
         <div className="mb-4">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">From hospitals</p>
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full min-w-0">
             {TESTIMONIALS.filter(t => t.type === 'hospital').map((t, i) => (
-              <TestimonialCard key={t.name} t={t} index={i} />
+              <div key={t.name} className="min-w-0">
+                <TestimonialCard t={t} index={i} />
+              </div>
             ))}
           </div>
         </div>
@@ -426,9 +399,11 @@ export default function LandingPage() {
         {/* Mother testimonials */}
         <div className="mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">From mothers</p>
-          <div className="grid md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full min-w-0">
             {TESTIMONIALS.filter(t => t.type === 'mother').map((t, i) => (
-              <TestimonialCard key={t.name} t={t} index={i + 2} />
+              <div key={t.name} className="min-w-0">
+                <TestimonialCard t={t} index={i + 2} />
+              </div>
             ))}
           </div>
         </div>
@@ -488,8 +463,8 @@ export default function LandingPage() {
           })}
         </motion.div>
         <motion.div className="mt-8" variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewport}>
-          <Link to="/dashboard/architecture">
-            <Button variant="outline" size="sm" className="gap-2">View full architecture diagram <ArrowRight className="w-3.5 h-3.5" /></Button>
+          <Link to="/architecture">
+            <Button variant="outline" size="sm" className="gap-2">View full architecture <ArrowRight className="w-3.5 h-3.5" /></Button>
           </Link>
         </motion.div>
       </section>
@@ -558,13 +533,8 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-border bg-card">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-              <HeartPulse className="w-3 h-3 text-primary-foreground" />
-            </div>
-            <span className="text-sm font-semibold">Meds-inn</span>
-          </div>
-          <p className="text-xs text-muted-foreground">© 2026 Meds-inn. Hackathon submission. All demo data is fictional.</p>
+          <Logo size="sm" />
+          <p className="text-xs text-muted-foreground">© 2026 Meds-inn. All demo data is fictional.</p>
           <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link>

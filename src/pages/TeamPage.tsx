@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { TEAM_MEMBERS } from '@/lib/demo-data';
+import { useTeam } from '@/hooks/use-team';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { CardGridSkeleton } from '@/components/common/TableSkeleton';
+import { ACTIVE_HOSPITAL } from '@/lib/hospitals';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +24,7 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function TeamPage() {
+  const { team: TEAM_MEMBERS, source, loading } = useTeam();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -45,8 +49,11 @@ export default function TeamPage() {
       <div data-tour="team-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Team</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Elara Women's Specialist Clinic · {TEAM_MEMBERS.length} members</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {ACTIVE_HOSPITAL.name} · {loading ? 'Loading…' : `${TEAM_MEMBERS.length} members`}
+          </p>
         </div>
+        <DataSourceBadge source={source} loading={loading} />
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-9 gap-1.5 text-xs self-start md:self-auto">
@@ -106,6 +113,9 @@ export default function TeamPage() {
       </div>
 
       {/* Team cards */}
+      {loading ? (
+        <CardGridSkeleton count={6} />
+      ) : (
       <div data-tour="team-members" className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map(member => (
           <Card key={member.id} className="h-full hover:shadow-[var(--shadow-hover)] transition-shadow">
@@ -173,6 +183,7 @@ export default function TeamPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

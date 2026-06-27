@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
+import { ErrorFallback } from "./components/common/ErrorFallback.tsx";
 import "./index.css";
 
 Sentry.init({
@@ -10,7 +11,9 @@ Sentry.init({
 });
 
 createRoot(document.getElementById("root")!).render(
-  <Sentry.ErrorBoundary fallback={<p>应用发生错误，请刷新页面重试</p>}>
+  <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+    <ErrorFallback error={error} resetError={resetError} />
+  )}>
     <AppWrapper>
       <App />
     </AppWrapper>

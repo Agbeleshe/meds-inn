@@ -7,7 +7,8 @@ import type { NavItem } from '@/lib/nav-items';
 import { useApp } from '@/contexts/AppContext';
 import { useTour } from '@/contexts/TourContext';
 import { HOSPITAL } from '@/lib/demo-data';
-import { ChevronLeft, ChevronRight, HeartPulse, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { Logo } from '@/components/common/Logo';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { staggerFast, fadeUp } from '@/lib/animations';
 import { NAV_DESCRIPTIONS } from '@/lib/nav-descriptions';
@@ -61,16 +62,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}>
         {/* Logo */}
         <div className={cn('flex items-center h-16 border-b border-sidebar-border px-4', collapsed && 'justify-center px-2')}>
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shrink-0">
-              <HeartPulse className="w-4 h-4 text-primary-foreground" />
-            </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <span className="text-sidebar-primary-foreground font-semibold text-base tracking-tight">Meds-inn</span>
-              </div>
-            )}
-          </div>
+          <Logo size="md" variant="dark" showWordmark={!collapsed} wordmarkClassName="text-sidebar-primary-foreground" />
         </div>
 
         {/* Hospital name */}

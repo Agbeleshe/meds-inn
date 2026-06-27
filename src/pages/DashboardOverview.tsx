@@ -1,6 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { DASHBOARD_METRICS, PATIENTS, APPOINTMENTS, TEAM_MEMBERS } from '@/lib/demo-data';
+import { useApp } from '@/contexts/AppContext';
+import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { MetricCardsSkeleton, TableSkeleton, ListItemsSkeleton } from '@/components/common/TableSkeleton';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ACTIVE_HOSPITAL } from '@/lib/hospitals';
 import { MetricCard } from '@/components/common/MetricCard';
 import { RiskBadge, AdherenceBadge, StatusDot } from '@/components/common/Badges';
 import { Button } from '@/components/ui/button';
@@ -31,43 +36,63 @@ const NURSE_ACTIVITY = [
 ];
 
 export default function DashboardOverview() {
+  const { currentUser } = useApp();
+  const { metrics, needFollowUp, upcomingAppointments, teamSnapshot, source, loading } = useDashboardMetrics();
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const upcomingAppts = APPOINTMENTS.filter(a => a.status === 'scheduled').slice(0, 4);
-  const needFollowUp = PATIENTS.filter(p => p.status === 'missed-followup' || p.riskLevel === 'high').slice(0, 4);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div data-tour="overview-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Good morning, Deborah</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{today} · Elara Women's Specialist Clinic</p>
+          <h1 className="text-xl font-bold text-foreground">Good morning, {currentUser.name.split(' ')[0]}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{today} · {ACTIVE_HOSPITAL.name}</p>
         </div>
         <div className="flex items-center gap-2">
+          <DataSourceBadge source={source} loading={loading} />
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-primary/20">
             <HeartPulse className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-primary">Care Score</span>
-            <span className="text-lg font-bold text-primary">{DASHBOARD_METRICS.careContinuityScore}</span>
-            <span className="text-xs text-muted-foreground">/100</span>
+            {loading ? (
+              <Skeleton className="h-6 w-8" />
+            ) : (
+              <>
+                <span className="text-lg font-bold text-primary">{metrics.careContinuityScore}</span>
+                <span className="text-xs text-muted-foreground">/100</span>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       {/* Metric cards */}
-      <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <MetricCard label="Enrolled Mothers" value={DASHBOARD_METRICS.totalMothers} trend="up" trendValue="+5 this month" icon={<Users className="w-4 h-4" />} />
-        <MetricCard label="Active Pregnancies" value={DASHBOARD_METRICS.activePregnancies} icon={<Activity className="w-4 h-4" />} />
-        <MetricCard label="High-Risk Cases" value={DASHBOARD_METRICS.highRiskCases} highlight icon={<AlertTriangle className="w-4 h-4" />} />
-        <MetricCard label="Today's Appointments" value={DASHBOARD_METRICS.todayAppointments} icon={<Calendar className="w-4 h-4" />} />
-        <MetricCard label="Missed Follow-ups" value={DASHBOARD_METRICS.missedFollowUps} trend="down" trendValue="-2 this week" icon={<AlertCircle className="w-4 h-4" />} />
-      </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <MetricCard label="Postpartum Mothers" value={DASHBOARD_METRICS.postpartumMothers} icon={<HeartPulse className="w-4 h-4" />} />
-        <MetricCard label="Babies (First Year)" value={DASHBOARD_METRICS.babiesFirstYear} icon={<Baby className="w-4 h-4" />} />
-        <MetricCard label="Vaccination Adherence" value={`${DASHBOARD_METRICS.vaccinationAdherence}%`} trend="up" trendValue="+3%" icon={<Syringe className="w-4 h-4" />} />
-        <MetricCard label="Avg Nurse Response" value={DASHBOARD_METRICS.avgNurseResponseTime} icon={<Clock className="w-4 h-4" />} />
-        <MetricCard label="Medication Adherence" value={`${DASHBOARD_METRICS.medicationAdherence}%`} trend="up" trendValue="+2%" icon={<Pill className="w-4 h-4" />} />
-      </div>
+      {loading ? (
+        <>
+          <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCardsSkeleton count={5} />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCardsSkeleton count={5} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCard label="Enrolled Mothers" value={metrics.totalMothers} trend="up" trendValue="+5 this month" icon={<Users className="w-4 h-4" />} />
+            <MetricCard label="Active Pregnancies" value={metrics.activePregnancies} icon={<Activity className="w-4 h-4" />} />
+            <MetricCard label="High-Risk Cases" value={metrics.highRiskCases} highlight icon={<AlertTriangle className="w-4 h-4" />} />
+            <MetricCard label="Today's Appointments" value={metrics.todayAppointments} icon={<Calendar className="w-4 h-4" />} />
+            <MetricCard label="Missed Follow-ups" value={metrics.missedFollowUps} trend="down" trendValue="-2 this week" icon={<AlertCircle className="w-4 h-4" />} />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCard label="Postpartum Mothers" value={metrics.postpartumMothers} icon={<HeartPulse className="w-4 h-4" />} />
+            <MetricCard label="Team members" value={metrics.teamMembers} icon={<Baby className="w-4 h-4" />} />
+            <MetricCard label="Vaccination Adherence" value="92%" trend="up" trendValue="+3%" icon={<Syringe className="w-4 h-4" />} />
+            <MetricCard label="Avg Nurse Response" value="2.4h" icon={<Clock className="w-4 h-4" />} />
+            <MetricCard label="Medication Adherence" value={`${metrics.medicationAdherence}%`} trend="up" trendValue="+2%" icon={<Pill className="w-4 h-4" />} />
+          </div>
+        </>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Mothers needing follow-up */}
@@ -90,7 +115,9 @@ export default function DashboardOverview() {
                     </tr>
                   </thead>
                   <tbody>
-                    {needFollowUp.map(p => (
+                    {loading ? (
+                      <TableSkeleton rows={5} columns={6} showAvatar />
+                    ) : needFollowUp.map(p => (
                       <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
@@ -116,6 +143,9 @@ export default function DashboardOverview() {
                         </td>
                       </tr>
                     ))}
+                    {!loading && needFollowUp.length === 0 && (
+                      <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No mothers need follow-up right now.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -179,7 +209,9 @@ export default function DashboardOverview() {
               </Link>
             </CardHeader>
             <CardContent className="space-y-3 px-4 pb-4">
-              {upcomingAppts.map(a => (
+              {loading ? (
+                <ListItemsSkeleton count={4} />
+              ) : upcomingAppointments.map(a => (
                 <div key={a.id} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center shrink-0">
                     <Calendar className="w-3.5 h-3.5 text-primary" />
@@ -192,6 +224,9 @@ export default function DashboardOverview() {
                   <Badge variant="outline" className="text-xs shrink-0">{a.mode === 'virtual' ? 'Video' : 'In-person'}</Badge>
                 </div>
               ))}
+              {!loading && upcomingAppointments.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">No upcoming consultations.</p>
+              )}
             </CardContent>
           </Card>
 

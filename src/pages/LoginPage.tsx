@@ -1,74 +1,76 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ROLES, HOSPITAL } from '@/lib/demo-data';
-import type { Role } from '@/lib/demo-data';
-import { useApp } from '@/contexts/AppContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { useState } from "react";
+import type { Role } from "@/types/clinical";
+import { useAuth } from "@/contexts/AuthContext";
+import { defaultDashboardPath } from "@/lib/route-access";
+import { ACTIVE_HOSPITAL_ID } from "@/lib/hospitals";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/auth/PasswordInput";
+import { HospitalSelect } from "@/components/auth/HospitalSelect";
+import { Logo } from "@/components/common/Logo";
+import { BackToHomeLink } from "@/components/auth/BackToHomeLink";
 import {
-  HeartPulse, ArrowRight, ArrowLeft, Check,
-  Stethoscope, Baby, ShieldCheck, UserRound, Hospital,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Stethoscope,
+  Baby,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Variants } from "framer-motion";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+type Path = "professional" | "mother";
+type Step = "path" | "pro-role" | "credentials";
+type ProRole = "admin" | "nurse" | "doctor";
 
-type Path  = 'professional' | 'mother';
-type Step  = 'path' | 'pro-role' | 'pro-details' | 'mother-details';
-type ProRole = 'admin' | 'nurse' | 'doctor';
-
-// ── Static data ────────────────────────────────────────────────────────────────
-
-const PRO_ROLES: { id: ProRole; label: string; desc: string; icon: React.ReactNode }[] = [
+const PRO_ROLES: {
+  id: ProRole;
+  label: string;
+  desc: string;
+  icon: React.ReactNode;
+  demoName: string;
+}[] = [
   {
-    id: 'admin',
-    label: 'Hospital Admin',
-    desc: 'Manage the care programme, patient enrolment, and team assignments.',
+    id: "admin",
+    label: "Hospital Admin",
+    desc: "Manage programmes, enrolment, and team assignments.",
     icon: <ShieldCheck className="w-5 h-5" />,
+    demoName: "Diana Harrington",
   },
   {
-    id: 'nurse',
-    label: 'Nurse / Midwife',
-    desc: 'Follow up between visits, review care briefs, and track adherence.',
+    id: "nurse",
+    label: "Nurse / Midwife",
+    desc: "Follow up between visits and track adherence.",
     icon: <Stethoscope className="w-5 h-5" />,
+    demoName: "Elena Costa",
   },
   {
-    id: 'doctor',
-    label: 'Doctor',
-    desc: 'Review patient status, conduct video consultations, and approve plans.',
+    id: "doctor",
+    label: "Doctor",
+    desc: "Review patients, video consults, and care plans.",
     icon: <UserRound className="w-5 h-5" />,
+    demoName: "Priya Sharma",
   },
 ];
-
-const SPECIALTIES = [
-  'Obstetrics & Gynaecology',
-  'Midwifery',
-  'General Practice',
-  'Paediatrics',
-  'Neonatology',
-  'Hospital Administration',
-];
-
-import type { Variants } from 'framer-motion';
-
-// ── Animation variants ─────────────────────────────────────────────────────────
 
 const slideIn: Variants = {
-  hidden:  { opacity: 0, x: 40 },
-  visible: { opacity: 1, x: 0,   transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] } },
-  exit:    { opacity: 0, x: -40, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } },
+  hidden: { opacity: 0, x: 40 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, x: -40, transition: { duration: 0.2 } },
 };
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
-
-/** Top logo + optional back button */
-function Header({ onBack }: { onBack?: () => void }) {
+function AuthHeader({ onBack }: { onBack?: () => void }) {
   return (
     <div className="flex items-center gap-3 mb-8 relative">
       {onBack && (
         <button
+          type="button"
           onClick={onBack}
           className="absolute left-0 p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
           aria-label="Back"
@@ -76,371 +78,202 @@ function Header({ onBack }: { onBack?: () => void }) {
           <ArrowLeft className="w-4 h-4" />
         </button>
       )}
-      <div className="mx-auto flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-          <HeartPulse className="w-5 h-5 text-primary-foreground" />
-        </div>
-        <span className="font-bold text-xl tracking-tight">Meds-inn</span>
+      <div className="mx-auto">
+        <Logo size="lg" className="justify-center" />
       </div>
     </div>
   );
 }
 
-/** Step progress dots */
-function StepDots({ total, current }: { total: number; current: number }) {
-  return (
-    <div className="flex items-center justify-center gap-1.5 mb-6">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            'rounded-full transition-all duration-300',
-            i < current
-              ? 'w-5 h-1.5 bg-primary'
-              : i === current
-              ? 'w-5 h-1.5 bg-primary/60'
-              : 'w-1.5 h-1.5 bg-border'
-          )}
-        />
-      ))}
-    </div>
-  );
-}
-
-// ── Main component ─────────────────────────────────────────────────────────────
-
 export default function LoginPage() {
-  const { setRole } = useApp();
-  const navigate    = useNavigate();
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
-  // Flow state
-  const [step, setStep]       = useState<Step>('path');
-  const [path, setPath]       = useState<Path | null>(null);
-  const [proRole, setProRole] = useState<ProRole>('admin');
+  const [step, setStep] = useState<Step>("path");
+  const [path, setPath] = useState<Path | null>(null);
+  const [proRole, setProRole] = useState<ProRole>("admin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("demo123");
+  const [hospitalId, setHospitalId] = useState(ACTIVE_HOSPITAL_ID);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Professional form
-  const [proName,     setProName]     = useState(ROLES.find(r => r.id === 'admin')?.name ?? '');
-  const [proHospital, setProHospital] = useState(HOSPITAL.name);
-  const [proSpec,     setProSpec]     = useState(SPECIALTIES[0]);
-
-  // Mother form
-  const [moName,    setMoName]    = useState(ROLES.find(r => r.id === 'mother')?.name ?? '');
-  const [moStatus,  setMoStatus]  = useState<'pregnant' | 'postpartum'>('pregnant');
-  const [moWeeks,   setMoWeeks]   = useState('24');
-  const [moHospital,setMoHospital]= useState(HOSPITAL.name);
-
-  // When pro role card changes, update the pre-filled name
-  function handleProRoleSelect(r: ProRole) {
+  function selectProRole(r: ProRole) {
     setProRole(r);
-    const match = ROLES.find(x => x.id === r);
-    if (match) setProName(match.name);
+    const match = PRO_ROLES.find((x) => x.id === r);
+    if (match) setUsername(match.demoName);
   }
 
-  function handleEnter() {
-    const role: Role = path === 'mother' ? 'mother' : proRole;
-    setRole(role);
-    navigate('/dashboard');
+  async function handleSignIn() {
+    if (!username.trim() || !password) {
+      toast.error("Enter your name and password");
+      return;
+    }
+
+    const role: Role = path === "mother" ? "mother" : proRole;
+    setSubmitting(true);
+    const { error, user: profile } = await signIn({
+      username: username.trim(),
+      password,
+      role,
+      hospitalId,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      const msg = error.message || "Sign in failed";
+      toast.error(
+        msg.includes("Invalid credentials")
+          ? `${msg} — use the pre-filled demo name, role, Elara hospital, password demo123`
+          : msg,
+      );
+      return;
+    }
+
+    navigate(defaultDashboardPath(role, profile?.onboardingComplete));
   }
-
-  // ── Step: path picker ──────────────────────────────────────────────────────
-  function StepPath() {
-    return (
-      <motion.div key="path" variants={slideIn} initial="hidden" animate="visible" exit="exit">
-        <Header />
-        <StepDots total={3} current={0} />
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-2 text-balance">Welcome to Meds-inn</h1>
-          <p className="text-sm text-muted-foreground text-pretty">
-            Tell us who you are so we can personalise your demo experience.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          {/* Healthcare professional */}
-          <button
-            onClick={() => { setPath('professional'); setStep('pro-role'); }}
-            className={cn(
-              'group w-full text-left rounded-2xl border-2 border-border bg-card p-6',
-              'hover:border-primary/50 hover:shadow-md transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-primary/30'
-            )}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                <Stethoscope className="w-6 h-6 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-foreground text-base mb-0.5">I am a Healthcare Professional</p>
-                <p className="text-sm text-muted-foreground text-pretty">
-                  Doctor, nurse, midwife, or hospital administrator.
-                </p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
-            </div>
-          </button>
-
-          {/* Mother / patient */}
-          <button
-            onClick={() => { setPath('mother'); setStep('mother-details'); }}
-            className={cn(
-              'group w-full text-left rounded-2xl border-2 border-border bg-card p-6',
-              'hover:border-[hsl(142_63%_35%)]/50 hover:shadow-md transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-[hsl(142_63%_35%)]/30'
-            )}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-[hsl(142_63%_35%)]/10 flex items-center justify-center shrink-0 group-hover:bg-[hsl(142_63%_35%)]/15 transition-colors">
-                <Baby className="w-6 h-6 text-[hsl(142_63%_35%)]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-foreground text-base mb-0.5">I am a Mother / Patient</p>
-                <p className="text-sm text-muted-foreground text-pretty">
-                  Expectant or new mother enrolled in a Meds-inn programme.
-                </p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-[hsl(142_63%_35%)] transition-colors" />
-            </div>
-          </button>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground mt-6 italic">
-          Demo prototype — all data is fictional.
-        </p>
-      </motion.div>
-    );
-  }
-
-  // ── Step: professional role picker ─────────────────────────────────────────
-  function StepProRole() {
-    return (
-      <motion.div key="pro-role" variants={slideIn} initial="hidden" animate="visible" exit="exit">
-        <Header onBack={() => setStep('path')} />
-        <StepDots total={3} current={1} />
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-foreground mb-1.5">What is your role?</h1>
-          <p className="text-sm text-muted-foreground">Select the role that best describes you.</p>
-        </div>
-
-        <div className="space-y-3 mb-6">
-          {PRO_ROLES.map(r => {
-            const sel = proRole === r.id;
-            return (
-              <button
-                key={r.id}
-                onClick={() => handleProRoleSelect(r.id)}
-                className={cn(
-                  'w-full text-left rounded-xl border-2 p-4 transition-all duration-150',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary',
-                  sel
-                    ? 'border-primary bg-primary/5 ring-2 ring-primary'
-                    : 'border-border bg-card hover:border-primary/30'
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-                    sel ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  )}>
-                    {r.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{r.label}</p>
-                    <p className="text-xs text-muted-foreground text-pretty leading-snug mt-0.5">{r.desc}</p>
-                  </div>
-                  {sel && (
-                    <div className="shrink-0 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="w-3 h-3 text-primary-foreground" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <Button
-          size="lg" className="w-full gap-2"
-          onClick={() => setStep('pro-details')}
-        >
-          Continue <ArrowRight className="w-4 h-4" />
-        </Button>
-      </motion.div>
-    );
-  }
-
-  // ── Step: professional details ─────────────────────────────────────────────
-  function StepProDetails() {
-    const roleLabel = PRO_ROLES.find(r => r.id === proRole)?.label ?? 'Professional';
-    return (
-      <motion.div key="pro-details" variants={slideIn} initial="hidden" animate="visible" exit="exit">
-        <Header onBack={() => setStep('pro-role')} />
-        <StepDots total={3} current={2} />
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-foreground mb-1.5">Set up your profile</h1>
-          <p className="text-sm text-muted-foreground">
-            As <span className="font-medium text-foreground">{roleLabel}</span> — confirm or adjust a few details.
-          </p>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">Your name</Label>
-            <div className="relative">
-              <UserRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={proName}
-                onChange={e => setProName(e.target.value)}
-                className="pl-9"
-                placeholder="Dr. Jane Smith"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">Hospital / Clinic</Label>
-            <div className="relative">
-              <Hospital className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={proHospital}
-                onChange={e => setProHospital(e.target.value)}
-                className="pl-9"
-                placeholder="Hospital name"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">Specialty / Department</Label>
-            <select
-              value={proSpec}
-              onChange={e => setProSpec(e.target.value)}
-              className={cn(
-                'w-full h-10 rounded-md border border-input bg-background px-3 text-sm',
-                'focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground'
-              )}
-            >
-              {SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <Button size="lg" className="w-full gap-2 mb-3" onClick={handleEnter}>
-          Enter as {roleLabel} <ArrowRight className="w-4 h-4" />
-        </Button>
-        <button
-          onClick={handleEnter}
-          className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Skip setup and enter directly
-        </button>
-      </motion.div>
-    );
-  }
-
-  // ── Step: mother details ───────────────────────────────────────────────────
-  function StepMotherDetails() {
-    return (
-      <motion.div key="mother-details" variants={slideIn} initial="hidden" animate="visible" exit="exit">
-        <Header onBack={() => setStep('path')} />
-        <StepDots total={2} current={1} />
-        <div className="text-center mb-6">
-          <div className="inline-flex w-12 h-12 rounded-xl bg-[hsl(142_63%_35%)]/10 items-center justify-center mb-3">
-            <Baby className="w-6 h-6 text-[hsl(142_63%_35%)]" />
-          </div>
-          <h1 className="text-xl font-bold text-foreground mb-1.5">Your care profile</h1>
-          <p className="text-sm text-muted-foreground">Help us personalise your demo experience.</p>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">Your name</Label>
-            <div className="relative">
-              <UserRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={moName}
-                onChange={e => setMoName(e.target.value)}
-                className="pl-9"
-                placeholder="Your name"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-normal mb-2 block">Your current stage</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {(['pregnant', 'postpartum'] as const).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setMoStatus(s)}
-                  className={cn(
-                    'rounded-xl border-2 py-3 px-4 text-sm font-medium transition-all',
-                    'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[hsl(142_63%_35%)]',
-                    moStatus === s
-                      ? 'border-[hsl(142_63%_35%)] bg-[hsl(142_63%_35%)]/10 text-[hsl(142_63%_25%)]'
-                      : 'border-border bg-card text-muted-foreground hover:border-[hsl(142_63%_35%)]/40'
-                  )}
-                >
-                  {s === 'pregnant' ? '🤰 Pregnant' : '🍼 Postpartum'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">
-              {moStatus === 'pregnant' ? 'Weeks pregnant' : "Baby's age (weeks)"}
-            </Label>
-            <Input
-              type="number"
-              min={1}
-              max={moStatus === 'pregnant' ? 42 : 52}
-              value={moWeeks}
-              onChange={e => setMoWeeks(e.target.value)}
-              placeholder={moStatus === 'pregnant' ? 'e.g. 24' : 'e.g. 8'}
-            />
-          </div>
-
-          <div>
-            <Label className="text-sm font-normal mb-1.5 block">Hospital / Clinic</Label>
-            <div className="relative">
-              <Hospital className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={moHospital}
-                onChange={e => setMoHospital(e.target.value)}
-                className="pl-9"
-                placeholder="Your enrolled clinic"
-              />
-            </div>
-          </div>
-        </div>
-
-        <Button
-          size="lg"
-          className="w-full gap-2 mb-3 bg-[hsl(142_63%_35%)] hover:bg-[hsl(142_63%_30%)] text-white"
-          onClick={handleEnter}
-        >
-          Enter your care space <ArrowRight className="w-4 h-4" />
-        </Button>
-        <button
-          onClick={handleEnter}
-          className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Skip and explore the demo
-        </button>
-      </motion.div>
-    );
-  }
-
-  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
+        <BackToHomeLink className="mb-6" />
         <AnimatePresence mode="wait">
-          {step === 'path'           && <StepPath         key="path"           />}
-          {step === 'pro-role'       && <StepProRole       key="pro-role"       />}
-          {step === 'pro-details'    && <StepProDetails    key="pro-details"    />}
-          {step === 'mother-details' && <StepMotherDetails key="mother-details" />}
+          {step === "path" && (
+            <motion.div key="path" variants={slideIn} initial="hidden" animate="visible" exit="exit">
+              <AuthHeader />
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold mb-2">Sign in to Meds-inn</h1>
+                <p className="text-sm text-muted-foreground">
+                  Choose your role, then sign in with your name and password.
+                </p>
+              </div>
+              <div className="grid gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPath("professional");
+                    selectProRole("admin");
+                    setStep("pro-role");
+                  }}
+                  className="w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-primary/50 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <Stethoscope className="w-6 h-6 text-primary shrink-0" />
+                    <div>
+                      <p className="font-semibold">Medical professional</p>
+                      <p className="text-sm text-muted-foreground">Admin, nurse, or doctor</p>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPath("mother");
+                    setUsername("Sofia Marchetti");
+                    setHospitalId(ACTIVE_HOSPITAL_ID);
+                    setStep("credentials");
+                  }}
+                  className="w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-[hsl(142_63%_35%)]/50 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <Baby className="w-6 h-6 text-[hsl(142_63%_35%)] shrink-0" />
+                    <div>
+                      <p className="font-semibold">Expecting or new mother</p>
+                      <p className="text-sm text-muted-foreground">Patient / mother account</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-8">
+                New here?{" "}
+                <Link to="/signup" className="text-primary font-medium hover:underline">
+                  Create an account
+                </Link>
+              </p>
+            </motion.div>
+          )}
+
+          {step === "pro-role" && (
+            <motion.div key="pro-role" variants={slideIn} initial="hidden" animate="visible" exit="exit">
+              <AuthHeader onBack={() => setStep("path")} />
+              <h1 className="text-xl font-bold text-center mb-6">What is your role?</h1>
+              <div className="space-y-3 mb-6">
+                {PRO_ROLES.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => selectProRole(r.id)}
+                    className={cn(
+                      "w-full text-left rounded-xl border-2 p-4 transition-all",
+                      proRole === r.id ? "border-primary bg-primary/5" : "border-border",
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center", proRole === r.id ? "bg-primary text-primary-foreground" : "bg-muted")}>
+                        {r.icon}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">{r.label}</p>
+                        <p className="text-xs text-muted-foreground">{r.desc}</p>
+                      </div>
+                      {proRole === r.id && <Check className="w-4 h-4 text-primary" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <Button className="w-full gap-2" onClick={() => setStep("credentials")}>
+                Continue <ArrowRight className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          )}
+
+          {step === "credentials" && (
+            <motion.div key="credentials" variants={slideIn} initial="hidden" animate="visible" exit="exit">
+              <AuthHeader
+                onBack={() => setStep(path === "mother" ? "path" : "pro-role")}
+              />
+              <div className="text-center mb-6">
+                <h1 className="text-xl font-bold">Sign in</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {path === "mother"
+                    ? "Use your full name as username"
+                    : `${PRO_ROLES.find((r) => r.id === proRole)?.label} at your hospital`}
+                </p>
+              </div>
+              <div className="space-y-4 mb-6">
+                <div>
+                  <Label className="text-sm font-normal mb-1.5 block">Full name (username)</Label>
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="e.g. Diana Harrington"
+                    autoComplete="username"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-normal mb-1.5 block">Password</Label>
+                  <PasswordInput
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                    autoComplete="current-password"
+                  />
+                </div>
+                <HospitalSelect
+                  value={hospitalId}
+                  onChange={setHospitalId}
+                  label={path === "mother" ? "Your enrolled hospital" : "Your hospital"}
+                />
+              </div>
+              <Button className="w-full gap-2 mb-3" onClick={handleSignIn} disabled={submitting}>
+                {submitting ? "Signing in…" : "Sign in"}
+                {!submitting && <ArrowRight className="w-4 h-4" />}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Demo: Diana Harrington / Elena Costa / Priya Sharma / Sofia Marchetti / Yuki Tanaka — password{" "}
+                <code className="text-foreground">demo123</code>
+              </p>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { APPOINTMENTS } from '@/lib/demo-data';
+import { useAppointments } from '@/hooks/use-appointments';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { TableSkeleton } from '@/components/common/TableSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,12 +24,13 @@ const STATUS_CONFIG = {
   cancelled: { label: 'Cancelled', color: 'bg-muted text-muted-foreground border-border' },
 };
 
-// Simple calendar: show current month
 const JUNE_DAYS = Array.from({ length: 30 }, (_, i) => i + 1);
-const APPT_DATES = new Set(APPOINTMENTS.map(a => parseInt(a.date.split('-')[2])));
-const HIGH_RISK_DATES = new Set([27, 28]);
 
 export default function AppointmentsPage() {
+  const { appointments: allAppointments, source, loading } = useAppointments();
+  const APPOINTMENTS = allAppointments;
+  const APPT_DATES = new Set(APPOINTMENTS.map(a => parseInt(a.date.split('-')[2])));
+  const HIGH_RISK_DATES = new Set([27, 28]);
   const [view, setView] = useState<View>('list');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
@@ -57,6 +60,7 @@ export default function AppointmentsPage() {
           <h1 className="text-xl font-bold text-foreground">Appointments</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Schedule, track, and follow up on all patient appointments.</p>
         </div>
+        <DataSourceBadge source={source} loading={loading} />
         <div className="flex items-center gap-2">
           <Tabs value={view} onValueChange={v => setView(v as View)}>
             <TabsList className="h-9">
@@ -181,7 +185,9 @@ export default function AppointmentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(a => (
+                {loading ? (
+                  <TableSkeleton rows={7} columns={7} />
+                ) : filtered.map(a => (
                   <tr key={a.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <p className="text-sm font-medium text-foreground">{a.patient}</p>
@@ -225,6 +231,9 @@ export default function AppointmentsPage() {
                     </td>
                   </tr>
                 ))}
+                {!loading && filtered.length === 0 && (
+                  <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">No appointments match your filter.</td></tr>
+                )}
               </tbody>
             </table>
           </div>

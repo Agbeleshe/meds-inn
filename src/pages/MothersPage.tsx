@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { PATIENTS } from '@/lib/demo-data';
-import type { PatientStatus, RiskLevel } from '@/lib/demo-data';
+import type { PatientStatus, RiskLevel } from '@/types/clinical';
+import { useMothers } from '@/hooks/use-mothers';
+import { DataSourceBadge } from '@/components/common/DataSourceBadge';
+import { TableSkeleton } from '@/components/common/TableSkeleton';
 import { RiskBadge, AdherenceBadge } from '@/components/common/Badges';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,12 +26,13 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function MothersPage() {
+  const { mothers: allPatients, source, loading, error } = useMothers();
   const [tab, setTab] = useState<TabKey>('all');
   const [search, setSearch] = useState('');
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [sortKey, setSortKey] = useState<string>('name');
 
-  let patients = PATIENTS;
+  let patients = allPatients;
   if (tab !== 'all') {
     if (tab === 'high-risk') patients = patients.filter(p => p.riskLevel === 'high');
     else patients = patients.filter(p => p.status === tab);
@@ -37,14 +40,28 @@ export default function MothersPage() {
   if (riskFilter !== 'all') patients = patients.filter(p => p.riskLevel === riskFilter as RiskLevel);
   if (search) {
     const q = search.toLowerCase();
-    patients = patients.filter(p => p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+    patients = patients.filter(
+      (p) =>
+        (p.name ?? "").toLowerCase().includes(q) ||
+        (p.id ?? "").toLowerCase().includes(q),
+    );
   }
-  if (sortKey === 'name') patients = [...patients].sort((a, b) => a.name.localeCompare(b.name));
-  if (sortKey === 'adherence') patients = [...patients].sort((a, b) => a.adherence - b.adherence);
-  if (sortKey === 'risk') patients = [...patients].sort((a, b) => {
-    const order: Record<RiskLevel, number> = { high: 0, moderate: 1, low: 2 };
-    return order[a.riskLevel] - order[b.riskLevel];
-  });
+  if (sortKey === "name") {
+    patients = [...patients].sort((a, b) =>
+      (a.name ?? "").localeCompare(b.name ?? ""),
+    );
+  }
+  if (sortKey === "adherence") {
+    patients = [...patients].sort(
+      (a, b) => (a.adherence ?? 0) - (b.adherence ?? 0),
+    );
+  }
+  if (sortKey === "risk") {
+    patients = [...patients].sort((a, b) => {
+      const order: Record<RiskLevel, number> = { high: 0, moderate: 1, low: 2 };
+      return (order[a.riskLevel] ?? 3) - (order[b.riskLevel] ?? 3);
+    });
+  }
 
   const statusLabel: Record<PatientStatus, string> = {
     'active-pregnancy': 'Pregnant',
@@ -63,7 +80,10 @@ export default function MothersPage() {
     <div className="space-y-6">
       <div data-tour="mothers-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Mothers</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-foreground">Mothers</h1>
+            <DataSourceBadge loading={loading} source={source} error={error} />
+          </div>
           <p className="text-sm text-muted-foreground mt-0.5">Mothers who need attention, surfaced early.</p>
         </div>
         <Button size="sm" className="gap-2 self-start md:self-auto" onClick={() => toast.success('Opening enrolment form')}>
@@ -122,7 +142,9 @@ export default function MothersPage() {
               </tr>
             </thead>
             <tbody>
-              {patients.map(p => (
+              {loading ? (
+                <TableSkeleton rows={8} columns={10} showAvatar />
+              ) : patients.map(p => (
                 <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
@@ -145,8 +167,8 @@ export default function MothersPage() {
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-muted-foreground">{p.nextAppointment}</td>
                   <td className="px-4 py-3.5 whitespace-nowrap"><AdherenceBadge value={p.adherence} /></td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusColor[p.status]}`}>
-                      {statusLabel[p.status]}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusColor[p.status] ?? "bg-muted text-muted-foreground"}`}>
+                      {statusLabel[p.status] ?? p.status ?? "—"}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
@@ -158,14 +180,16 @@ export default function MothersPage() {
                   </td>
                 </tr>
               ))}
-              {patients.length === 0 && (
+              {!loading && patients.length === 0 && (
                 <tr><td colSpan={10} className="px-4 py-12 text-center text-sm text-muted-foreground">No patients match your current filters.</td></tr>
               )}
             </tbody>
           </table>
         </div>
         <div className="px-4 py-3 border-t border-border flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">Showing {patients.length} of {PATIENTS.length} patients</p>
+          <p className="text-xs text-muted-foreground">
+            {loading ? 'Loading patients…' : `Showing ${patients.length} of ${allPatients.length} patients`}
+          </p>
         </div>
       </div>
     </div>

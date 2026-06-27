@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Calendar, ClipboardList, Bell,
   MessageSquare, Video, Baby, BarChart3, Users2,
-  Sparkles, FolderOpen, Server, Settings, HeartPulse,
+  Sparkles, FolderOpen, Settings, HeartPulse,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -26,7 +26,6 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'team',         label: 'Team',                 path: '/dashboard/team',              icon: Users2,       roles: ['admin'] },
   { key: 'ai-briefs',    label: 'AI Care Briefs',       path: '/dashboard/care-briefs',       icon: Sparkles },
   { key: 'documents',    label: 'Documents',            path: '/dashboard/documents',         icon: FolderOpen },
-  { key: 'architecture', label: 'Architecture',         path: '/dashboard/architecture',      icon: Server },
   { key: 'settings',     label: 'Settings',             path: '/dashboard/settings',          icon: Settings },
 ];
 

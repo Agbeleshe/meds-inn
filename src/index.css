@@ -1,4 +1,6 @@
 /* stylelint-disable */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Syne+Mono&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,8 +8,6 @@
 /* Meds-in Design System — Premium Healthcare Platform */
 /* Colors: Warm Ivory BG, Charcoal text, Deep Teal primary, Muted Gold accent */
 /* No gradients anywhere */
-
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Syne+Mono&display=swap');
 
 @layer base {
   :root {

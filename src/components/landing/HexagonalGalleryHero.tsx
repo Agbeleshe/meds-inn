@@ -20,28 +20,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { HeartPulse, ArrowRight, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogoMark } from '@/components/common/Logo';
 import { fadeUp, staggerSlow, scaleIn, viewport } from '@/lib/animations';
+import { HEX_IMAGES } from '@/lib/site-images';
 
-// ─── Images (exported so App.tsx can preload them on startup) ────────────────
-
-export const HEX_IMAGES = [
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_716ebc85-9d2c-4458-acce-8148d2566a9f.jpg', alt: 'Pregnant mother hospital maternity portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_0fb53c35-7712-425d-b9fc-a282562de598.jpg', alt: 'Pregnant Asian mother smiling natural light' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_daa2db90-7f7b-462d-ac2b-474c0b7f59e9.jpg', alt: 'Pregnant Hispanic Latin mother portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_6e4783ac-db64-4628-8c44-687dd5d678a8.jpg', alt: 'Pregnant African mother warm studio portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_d64109aa-a7b6-43e7-91f6-6d8e5fb95b3c.jpg', alt: 'Pregnant European mother professional natural light' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_fc0b4933-e01d-4fe5-bdc9-42c506fac535.jpg', alt: 'Female doctor hospital white coat stethoscope' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_1bd11433-b42e-43cd-95d2-fca294442593.jpg', alt: 'Nurse midwife hospital scrubs portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_755f0197-4351-4ccb-8dc6-7479783cc846.jpg', alt: 'Asian female doctor professional portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_3ddc9e2c-ec31-401f-915b-8905d5e90ae7.jpg', alt: 'African female nurse professional scrubs' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_d53eb03c-23ee-46af-b6a7-36be3a4964d5.jpg', alt: 'Hispanic female doctor confident portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_b96611b0-ecff-4ff4-8a44-d1e9ae553627.jpg', alt: 'Mother with newborn baby hospital warm portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_b1efac81-5850-4f26-a683-3be6c2809eae.jpg', alt: 'Asian mother with toddler warm smiling portrait' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_01272418-fcd7-4185-95de-1b6ba46f79e5.jpg', alt: 'African mother laughing with baby natural light' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_119bb20b-db9c-46e6-bd68-6fee817b2272.jpg', alt: 'European mother child warm portrait smile' },
-  { src: 'https://miaoda-site-img.s3cdn.medo.dev/images/KLing_0cf27186-c05e-4848-b37a-bd6ef28b3fa4.jpg', alt: 'Latin mother with toddler warm smiling portrait' },
-];
+export { HEX_IMAGES };
 
 // ─── Tile rows — flat stream of N=20 rows (MUST be even for seamless seam) ───
 // Even rows: 3 hexes, indented by (W+gap)/2
@@ -241,7 +225,7 @@ export function HexagonalGalleryHero() {
               className="flex flex-col"
             >
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-secondary text-primary text-xs font-medium mb-7 w-fit">
-              <HeartPulse className="w-3.5 h-3.5" />
+              <LogoMark size="xs" />
               Built for hospitals. Designed around mothers.
             </motion.div>
             <motion.h1 variants={fadeUp} className="text-4xl xl:text-5xl font-bold text-foreground leading-[1.1] text-balance mb-5">

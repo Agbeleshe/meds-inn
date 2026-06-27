@@ -13,7 +13,8 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { HeartPulse, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
+import { LogoMark } from '@/components/common/Logo';
 
 interface SplashScreenProps {
   onDone: () => void;
@@ -78,7 +79,6 @@ export function SplashScreen({ onDone, progress, loaded, total }: SplashScreenPr
           width: 80,
           height: 80,
           borderRadius: '50%',
-          background: isReady ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -86,18 +86,16 @@ export function SplashScreen({ onDone, progress, loaded, total }: SplashScreenPr
           boxShadow: '0 8px 32px hsl(var(--primary) / 0.35)',
           animation: isReady ? 'splash-pop 0.4s ease-out forwards' : 'splash-pulse 2s ease-in-out infinite',
           transition: 'box-shadow 0.3s',
+          overflow: 'hidden',
         }}
       >
         {isReady ? (
           <CheckCircle2
-            style={{ width: 40, height: 40, color: 'hsl(var(--primary-foreground))' }}
+            style={{ width: 40, height: 40, color: 'hsl(var(--primary))' }}
             strokeWidth={1.8}
           />
         ) : (
-          <HeartPulse
-            style={{ width: 40, height: 40, color: 'hsl(var(--primary-foreground))' }}
-            strokeWidth={1.8}
-          />
+          <LogoMark size="splash" className="!h-[72px] !w-[72px]" />
         )}
       </div>
 
