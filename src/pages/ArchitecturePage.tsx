@@ -11,7 +11,8 @@ import { fadeUp, staggerContainer, viewport } from '@/lib/animations';
 import {
   Server, Database, Shield, Cloud, Bell, Brain, Monitor,
   Globe, Layers, ArrowDown, ArrowRight, Users, Code2, Lock, ArrowLeft,
-  FolderOpen, Calendar, Baby,
+  FolderOpen, Calendar, Baby, HeartPulse, MessageSquare, Video,
+  ListTodo, FileText, Activity, ShieldAlert, Sparkles, CheckCircle2,
 } from 'lucide-react';
 
 interface ServiceCard {
@@ -132,6 +133,73 @@ const SERVICES: ServiceCard[] = [
     color: 'bg-[hsl(207_85%_95%)] border-[hsl(207_85%_60%)]',
   },
 ];
+
+const APPLICATION_FEATURES = {
+  mother: [
+    {
+      title: 'Interactive Care Onboarding',
+      desc: '3-step onboarding collecting age (18+ validation), clinical basics, emergency contacts, and care stage (pregnancy EDD / baby age).',
+      badge: 'Completed',
+      icon: Users,
+    },
+    {
+      title: 'Symptom Logging & Tracking',
+      desc: 'Daily symptom tracker for physical and emotional states, instantly flagging potential complications to the care team.',
+      badge: 'Interactive',
+      icon: Activity,
+    },
+    {
+      title: 'Medications & Care Tasks',
+      desc: 'Tailored daily checklist mapping out medication doses, vitamins, and clinical tasks with integrated adherence tracking.',
+      badge: 'Live',
+      icon: ListTodo,
+    },
+    {
+      title: 'Secure Specialist Chat',
+      desc: 'Direct, encrypted messaging threads between the patient and their assigned midwives or doctors.',
+      badge: 'Live',
+      icon: MessageSquare,
+    },
+    {
+      title: 'Personal Health Timeline',
+      desc: 'Visual timeline tracking pregnancy weeks or postpartum milestones, dynamically adjusting based on care stage.',
+      badge: 'Dynamic',
+      icon: HeartPulse,
+    },
+  ],
+  specialist: [
+    {
+      title: 'Mother Directory & Triage',
+      desc: 'Advanced patient list with risk-level filtering, assignment controls, and clinical profile overviews.',
+      badge: 'Clinician Hub',
+      icon: Users,
+    },
+    {
+      title: 'AI-Powered Care Briefs',
+      desc: 'Automated patient summaries generated from medical logs and symptom history, with clinician-in-the-loop review.',
+      badge: 'AI Powered',
+      icon: Sparkles,
+    },
+    {
+      title: 'Integrated Video Consults',
+      desc: 'In-app secure HD video rooms enabling remote consultations directly inside the specialist dashboard.',
+      badge: 'Telehealth',
+      icon: Video,
+    },
+    {
+      title: 'Chunked Document Center',
+      desc: 'Secure uploads of scans and lab results, chunked in base64 format (up to 10MB per file) directly in DynamoDB.',
+      badge: 'DynamoDB Live',
+      icon: FolderOpen,
+    },
+    {
+      title: 'Escalation & Waiting Lists',
+      desc: 'Real-time alert system flagging high-risk cases and managing specialist waiting lists across clinics.',
+      badge: 'Operations',
+      icon: ShieldAlert,
+    },
+  ],
+};
 
 const FLOW_ROWS = [
   {
@@ -363,21 +431,84 @@ export default function ArchitecturePage() {
         </CardContent>
       </Card>
 
-      <div className="grid sm:grid-cols-3 gap-3">
-        {[
-          { icon: Calendar, label: 'Appointments', text: 'Specialists POST new visits; GET auto-marks past scheduled as missed.' },
-          { icon: FolderOpen, label: 'Documents', text: 'Chunked base64 in DOCUMENT#… CHUNK# items; 10 MB max per upload.' },
-          { icon: Baby, label: 'Baby profile', text: 'MOTHER#{id} + SK BABY#PROFILE — filled by mother, read by care team.' },
-        ].map(({ icon: Icon, label, text }) => (
-          <div key={label} className="rounded-xl border border-border bg-card p-4 flex gap-3">
-            <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-foreground">{label}</p>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{text}</p>
+      <section className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Application Features</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Comprehensive list of live and interactive capabilities built for mothers and clinicians.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-lg w-fit">
+            <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+            All features persist to DynamoDB
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Mother Experience */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border">
+              <Baby className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Mother &amp; Patient Experience</h3>
+            </div>
+            <div className="space-y-3">
+              {APPLICATION_FEATURES.mother.map((f) => {
+                const Icon = f.icon;
+                return (
+                  <div key={f.title} className="rounded-xl border border-border bg-card p-4 flex gap-3.5 hover:border-primary/35 transition-all duration-300">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{f.title}</p>
+                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 font-normal shrink-0">
+                          {f.badge}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {f.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Specialist Console */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border">
+              <HeartPulse className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Clinician &amp; Specialist Console</h3>
+            </div>
+            <div className="space-y-3">
+              {APPLICATION_FEATURES.specialist.map((f) => {
+                const Icon = f.icon;
+                return (
+                  <div key={f.title} className="rounded-xl border border-border bg-card p-4 flex gap-3.5 hover:border-primary/35 transition-all duration-300">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground">{f.title}</p>
+                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 font-normal shrink-0">
+                          {f.badge}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {f.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="flex gap-4 rounded-xl border border-primary/20 bg-secondary/50 p-5">
         <Lock className="w-5 h-5 text-primary shrink-0 mt-0.5" />

@@ -13,7 +13,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { notificationHref } from '@/lib/notification-links';
 import { toast } from 'sonner';
 import {
-  Search, Bell, ChevronDown, Menu, Sun, Moon, MapPin, Info
+  Search, Bell, ChevronDown, Menu, Sun, Moon, MapPin, Info, ArrowLeft
 } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ export function TopBar() {
   const { theme, toggleTheme } = useTheme();
   const { startTour, startElementTour, mobileMenuOpen, setMobileMenuOpen } = useTour();
   const [localMobileOpen, setLocalMobileOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -41,6 +43,14 @@ export function TopBar() {
   const handleSignOut = () => {
     signOut();
     navigate('/login');
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast.info(`Searching for "${searchQuery}"...`);
+      // Here you can navigate to search results or trigger search callback
+    }
   };
 
   // Sheet open = either user-opened OR tour-controlled
@@ -60,6 +70,40 @@ export function TopBar() {
     doctor: 'bg-[hsl(38_53%_47%)] text-white',
     mother: 'bg-[hsl(142_63%_35%)] text-white',
   };
+
+  if (showMobileSearch) {
+    return (
+      <motion.header
+        className="h-16 border-b border-border bg-card/80 backdrop-blur-sm flex items-center gap-2 px-4 sticky top-0 z-30"
+        variants={slideDown} initial="hidden" animate="visible"
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          onClick={() => setShowMobileSearch(false)}
+          aria-label="Close search"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <form onSubmit={handleSearchSubmit} className="flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search patients, appointments…"
+              className="pl-9 h-9 bg-background text-sm w-full"
+            />
+          </div>
+          <Button type="submit" size="sm" className="h-9">
+            Go
+          </Button>
+        </form>
+      </motion.header>
+    );
+  }
 
   return (
     <motion.header
@@ -134,21 +178,47 @@ export function TopBar() {
         </SheetContent>
       </Sheet>
 
-      {/* Search */}
-      <div data-tour="topbar-search" className="relative flex-1 max-w-sm hidden md:block">
+      {/* Desktop Search */}
+      <form onSubmit={handleSearchSubmit} data-tour="topbar-search" className="relative flex-1 max-w-sm hidden md:block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search patients, appointments…" className="pl-9 h-9 bg-background text-sm" />
-      </div>
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search patients, appointments…"
+          className="pl-9 h-9 bg-background text-sm"
+        />
+      </form>
 
       <div className="flex items-center gap-2 ml-auto">
+        {/* Mobile Search Icon Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setShowMobileSearch(true)}
+          aria-label="Open search"
+        >
+          <Search className="w-4 h-4" />
+        </Button>
+
         {/* Role badge */}
         <span className={cn('hidden sm:inline-flex items-center px-2.5 py-1 rounded text-xs font-medium', roleColors[role])}>
           {ROLE_LABELS[role]}
         </span>
 
-        {/* Tour button */}
+        {/* Tour / Replay Tour button */}
         <Button
           data-tour="topbar-tour"
+          variant="ghost"
+          size="icon"
+          onClick={startTour}
+          className="flex items-center justify-center sm:hidden w-9 h-9"
+          aria-label="Replay platform tour"
+        >
+          <MapPin className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+        </Button>
+        <Button
+          data-tour="topbar-tour-desktop"
           variant="ghost"
           size="sm"
           onClick={startTour}
@@ -156,7 +226,7 @@ export function TopBar() {
           aria-label="Take a platform tour"
         >
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden md:inline">Tour</span>
+          <span>Tour</span>
         </Button>
 
         {/* Theme toggle */}

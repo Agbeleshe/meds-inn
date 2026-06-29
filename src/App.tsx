@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import IntersectObserver from '@/components/common/IntersectObserver';
+import { NetworkGuard } from '@/components/common/NetworkGuard';
 import { Toaster } from '@/components/ui/sonner';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -97,6 +98,7 @@ const App: React.FC = () => {
         <Router>
         {splashDone && <CookieConsentModal />}
         <IntersectObserver />
+        <NetworkGuard />
         <PageLoadingProvider>
         <RouteGuard>
         <Routes>
