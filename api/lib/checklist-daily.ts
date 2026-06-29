@@ -120,7 +120,7 @@ export async function getChecklistDayRecord(motherId: string, date: string) {
 }
 
 export async function putChecklistDayRecord(record: ChecklistDayRecord) {
-  const normalized = normalizeDayRecord(record);
+  const normalized = normalizeDayRecord(record as unknown as Record<string, unknown>);
   saveChecklistDaySession(normalized.motherId, normalized as unknown as Record<string, unknown>);
 
   try {

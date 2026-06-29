@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const hospitalId = String(user.hospitalId ?? "ELR");
 
   try {
-    let mothers = await listMotherRecordsFast(hospitalId);
+    let mothers: any[] = await listMotherRecordsFast(hospitalId);
     mothers = filterMothersByAssignmentTab(
       mothers as Parameters<typeof filterMothersByAssignmentTab>[0],
       { id: String(user.id), role: user.role as "admin" | "nurse" | "doctor" | "mother" },

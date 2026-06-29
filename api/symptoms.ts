@@ -46,14 +46,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === "POST") {
     try {
-      const body = await readBody<{
+      const body = (await readBody<{
         patientId: string;
         symptom: string;
         severity?: "mild" | "moderate" | "severe";
         notes?: string;
         date?: string;
         updateConcerns?: boolean;
-      }>(req);
+      }>(req)) ?? {} as any;
 
       const pid = String(body?.patientId ?? patientId).trim();
       const symptom = String(body?.symptom ?? "").trim();

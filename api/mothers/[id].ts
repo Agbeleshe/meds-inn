@@ -74,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return json(res, 403, { error: "Access denied" });
       }
 
-      const body = await readBody<Record<string, unknown>>(req);
+      const body = (await readBody<Record<string, unknown>>(req)) ?? {};
       const previousWeek = Number(existing.gestationalWeek ?? 0);
       const gestationalWeek = body.gestationalWeek ?? body.gestationalWeeks;
       let weeks =

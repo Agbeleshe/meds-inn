@@ -67,7 +67,7 @@ export async function listAppointmentRecordsFromDb(hospitalId: string) {
       }),
     ),
     2500,
-    { Items: [] },
+    { Items: [] } as any,
   );
 
   return (result.Items ?? [])

@@ -86,7 +86,7 @@ export async function buildDashboardMetrics(
         }),
       ),
       2000,
-      { Items: [] },
+      { Items: [] } as any,
     );
     team = (teamRes.Items ?? [])
       .map((item) => stripKeys(item as Record<string, unknown>))

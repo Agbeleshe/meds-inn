@@ -87,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ),
     );
 
-    const regenerated = [];
+    const regenerated: any[] = [];
     for (const mother of editable) {
       const ctx = await gatherCareBriefContext(mother.id, hospitalId);
       if (!ctx) continue;

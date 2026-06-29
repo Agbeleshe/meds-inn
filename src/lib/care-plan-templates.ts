@@ -1,4 +1,4 @@
-import type { CarePlanSection, MotherChecklistItem } from "@/types/clinical";
+import type { CarePlan, CarePlanSection, MotherChecklistItem } from "@/types/clinical";
 
 /** Serializable care plan sections (stored in DynamoDB, no React icons) */
 export const DEFAULT_CARE_PLAN_SECTIONS: CarePlanSection[] = [
@@ -125,12 +125,12 @@ export const DEFAULT_CARE_PLAN_SECTIONS: CarePlanSection[] = [
   },
 ];
 
-export function buildDefaultCarePlan(motherId: string) {
+export function buildDefaultCarePlan(motherId: string): CarePlan {
   return {
     motherId,
     sections: DEFAULT_CARE_PLAN_SECTIONS,
     motherChecklist: DEFAULT_MOTHER_CHECKLIST,
- 
+    education: DEFAULT_CARE_EDUCATION,
     updatedAt: new Date().toISOString(),
   };
 }

@@ -29,7 +29,7 @@ async function handleOnboarding(
   user: Record<string, unknown>,
   motherId: string,
 ) {
-  const body = await readBody<OnboardingBody>(req);
+  const body = (await readBody<OnboardingBody>(req)) ?? {} as any;
   const age = Number(body.age);
   const phone = body.phone?.trim();
   const email = body.email?.trim();

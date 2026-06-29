@@ -107,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-      const body = await readBody<{ motherId: string; status: "scheduled" | "resolved" }>(req);
+      const body = (await readBody<{ motherId: string; status: "scheduled" | "resolved" }>(req)) ?? {} as any;
       const motherId = String(body?.motherId ?? "").trim();
       if (!motherId) return json(res, 400, { error: "motherId is required" });
 

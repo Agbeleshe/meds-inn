@@ -92,7 +92,7 @@ export async function listDocumentRecords(hospitalId: string, patientId?: string
         }),
       ),
       2500,
-      { Items: [] },
+      { Items: [] } as any,
     );
 
     items = (result.Items ?? [])

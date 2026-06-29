@@ -72,7 +72,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           authorName: String(user.name),
           authorUserId: String(user.id),
           authorRole: String(user.role),
-          category: body.category ?? "visit",
+          category: body?.category ?? "visit",
           hospitalId,
           createdAt: new Date().toISOString(),
         },

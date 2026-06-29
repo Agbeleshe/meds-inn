@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { canAccessMother } from "../lib/access";
+import { getBearerToken, getUserRecordById } from "../../lib/auth";
+import { canAccessMother } from "../../lib/access";
 import {
   getMotherRecordResolved,
   putMotherRecordResolved,
-} from "../lib/mothers";
-import { createNotification, notifyHospitalAdmins } from "../lib/notifications";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+} from "../../lib/mothers";
+import { createNotification, notifyHospitalAdmins } from "../../lib/notifications";
+import { json, methodNotAllowed, readBody } from "../../lib/handler";
 
 const VALID_SEVERITIES = new Set(["urgent", "serious", "mild"]);
 const VALID_TARGETS = new Set(["doctor", "nurse", "admin"]);
