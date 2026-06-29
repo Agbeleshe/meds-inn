@@ -1,9 +1,9 @@
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { DEMO_USERS } from "../../src/lib/demo-users";
-import { dynamodb, TABLE_NAME } from "./dynamodb";
-import { createNotification } from "./notifications";
-import { resolveMotherUserId } from "./fast-fallback";
-import { logActivity } from "./activity-log";
+import { DEMO_USERS } from "../../src/lib/demo-users.js";
+import { dynamodb, TABLE_NAME } from "./dynamodb.js";
+import { createNotification } from "./notifications.js";
+import { resolveMotherUserId } from "./fast-fallback.js";
+import { logActivity } from "./activity-log.js";
 
 function formatTimeDisplay(time: string) {
   const raw = time.trim();

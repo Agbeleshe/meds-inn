@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsResolved } from "./lib/mothers";
-import { json, methodNotAllowed } from "./lib/handler";
-import type { Mother } from "../src/types/clinical";
-import { isMotherUnassigned, hasPendingSpecialistRequest } from "../src/lib/assignments";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsResolved } from "./lib/mothers.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
+import type { Mother } from "../src/types/clinical.js";
+import { isMotherUnassigned, hasPendingSpecialistRequest } from "../src/lib/assignments.js";
 
 /** GET /api/specialist-requests — admin waiting list */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

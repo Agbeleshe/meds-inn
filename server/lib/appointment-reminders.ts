@@ -2,7 +2,7 @@ import {
   findMotherUserId,
   notifyAppointmentReminder,
 } from "./appointment-notify";
-import { putAppointmentRecord, normalizeAppointment } from "./appointment-records";
+import { putAppointmentRecord, normalizeAppointment } from "./appointment-records.js";
 
 function parseAppointmentDateTime(date: string, time: string): Date | null {
   const timeVal = time.trim();

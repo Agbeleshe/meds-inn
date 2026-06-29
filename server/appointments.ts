@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast, putMotherRecordResolved } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { filterAppointmentsForRole } from "../src/lib/assignments";
-import { sortAppointmentsByRecent } from "../src/lib/appointment-sort";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast, putMotherRecordResolved } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { filterAppointmentsForRole } from "../src/lib/assignments.js";
+import { sortAppointmentsByRecent } from "../src/lib/appointment-sort.js";
 import {
   applyMissedStatus,
   listAppointmentRecords,
@@ -14,8 +14,8 @@ import {
   notifyMotherAppointmentScheduled,
   buildVideoRoomId,
 } from "./lib/appointment-notify";
-import { processAppointmentReminders } from "./lib/appointment-reminders";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { processAppointmentReminders } from "./lib/appointment-reminders.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET/POST /api/appointments — role-scoped list and specialist booking */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

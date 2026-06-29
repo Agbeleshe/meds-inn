@@ -1,4 +1,4 @@
-import { DEMO_USERS } from "../../src/lib/demo-users";
+import { DEMO_USERS } from "../../src/lib/demo-users.js";
 
 /** Demo motherId → auth user id (avoids slow USER table scans). */
 const MOTHER_USER_IDS: Record<string, string> = {

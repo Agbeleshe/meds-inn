@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { isValidEmail, putWaitlistEntry } from "./lib/auth";
-import { sendWaitlistThankYouEmail } from "./lib/email";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { isValidEmail, putWaitlistEntry } from "./lib/auth.js";
+import { sendWaitlistThankYouEmail } from "./lib/email.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 interface WaitlistBody {
   email?: string;

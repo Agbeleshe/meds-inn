@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../../lib/auth";
+import { getBearerToken, getUserRecordById } from "../../lib/auth.js";
 import {
   getMotherRecordResolved,
   putMotherRecordResolved,
 } from "../../lib/mothers";
-import { notifyHospitalAdmins } from "../../lib/notifications";
-import { json, methodNotAllowed, readBody } from "../../lib/handler";
+import { notifyHospitalAdmins } from "../../lib/notifications.js";
+import { json, methodNotAllowed, readBody } from "../../lib/handler.js";
 
 const REQUEST_LABELS: Record<string, string> = {
   request: "requested a specialist",

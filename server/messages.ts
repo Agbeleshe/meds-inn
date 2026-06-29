@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { canEditMotherCare } from "../src/lib/assignments";
-import { getMotherRecordResolved } from "./lib/mothers";
-import { createNotification } from "./lib/notifications";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./lib/dynamodb";
-import { toMessageItem } from "./lib/items";
-import { prefixFilter } from "./lib/items";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { canEditMotherCare } from "../src/lib/assignments.js";
+import { getMotherRecordResolved } from "./lib/mothers.js";
+import { createNotification } from "./lib/notifications.js";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./lib/dynamodb.js";
+import { toMessageItem } from "./lib/items.js";
+import { prefixFilter } from "./lib/items.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET/POST /api/messages */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

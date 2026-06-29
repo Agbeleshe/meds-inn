@@ -1,7 +1,7 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
-import { toSymptomItem } from "./items";
-import { listSymptomSessions, saveSymptomSession } from "./symptom-session-store";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
+import { toSymptomItem } from "./items.js";
+import { listSymptomSessions, saveSymptomSession } from "./symptom-session-store.js";
 
 export type SymptomSeverity = "mild" | "moderate" | "severe";
 

@@ -1,15 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { listMotherRecordsFast } from "../lib/mothers";
-import { canAccessMother } from "../lib/access";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { listMotherRecordsFast } from "../lib/mothers.js";
+import { canAccessMother } from "../lib/access.js";
 import {
   getAppointmentById,
   normalizeAppointment,
   putAppointmentRecord,
   todayDateString,
 } from "../lib/appointment-records";
-import { notifyMotherAppointmentRescheduled } from "../lib/appointment-notify";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { notifyMotherAppointmentRescheduled } from "../lib/appointment-notify.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 function isInPerson(mode: string) {
   return mode !== "virtual" && mode !== "video";

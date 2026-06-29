@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { canAccessMotherId } from "./lib/access";
-import { getMotherRecordById } from "./lib/mothers";
-import { listTimelineEvents } from "./lib/care-plans";
-import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { canAccessMotherId } from "./lib/access.js";
+import { getMotherRecordById } from "./lib/mothers.js";
+import { listTimelineEvents } from "./lib/care-plans.js";
+import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/timeline?motherId= */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

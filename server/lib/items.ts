@@ -1,4 +1,4 @@
-import { ENTITY_PREFIX, PARTITION_KEY, SORT_KEY } from "./dynamodb";
+import { ENTITY_PREFIX, PARTITION_KEY, SORT_KEY } from "./dynamodb.js";
 
 function withKeys(
   pk: string,

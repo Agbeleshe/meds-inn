@@ -1,6 +1,6 @@
 import { QueryCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, PARTITION_KEY, SORT_KEY, stripKeys, ENTITY_PREFIX } from "./dynamodb";
-import { DEMO_USERS } from "../../src/lib/demo-users";
+import { dynamodb, TABLE_NAME, PARTITION_KEY, SORT_KEY, stripKeys, ENTITY_PREFIX } from "./dynamodb.js";
+import { DEMO_USERS } from "../../src/lib/demo-users.js";
 import {
   appendNotificationSession,
   listNotificationSessions,

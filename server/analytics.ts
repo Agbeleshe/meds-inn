@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { buildAnalytics, type AnalyticsRange } from "./lib/analytics";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { buildAnalytics, type AnalyticsRange } from "./lib/analytics.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/analytics?range=6m */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

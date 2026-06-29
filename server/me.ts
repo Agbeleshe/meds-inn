@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserById } from "./lib/auth";
-import { getDemoUserRecordById } from "./lib/demo-auth";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserById } from "./lib/auth.js";
+import { getDemoUserRecordById } from "./lib/demo-auth.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/me — current user profile from DynamoDB USER# (Bearer token = user id) */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

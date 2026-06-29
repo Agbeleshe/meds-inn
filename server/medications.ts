@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { filterMedicationsForRole, canEditMedication, canPrescribeMedicationForPatient } from "../src/lib/assignments";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { filterMedicationsForRole, canEditMedication, canPrescribeMedicationForPatient } from "../src/lib/assignments.js";
 import {
   listMedicationRecords,
   putMedicationRecord,
@@ -11,9 +11,9 @@ import {
   listDoseRecords,
   computeAdherenceStats,
 } from "./lib/medication-records";
-import { withTimeout } from "./lib/fast-fallback";
-import { MEDICATIONS } from "../src/lib/demo-data";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { withTimeout } from "./lib/fast-fallback.js";
+import { MEDICATIONS } from "../src/lib/demo-data.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET/POST/PATCH /api/medications — role-scoped medication prescriptions */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

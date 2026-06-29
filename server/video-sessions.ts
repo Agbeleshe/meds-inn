@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
 import {
   getAppointmentById,
   normalizeAppointment,
@@ -11,8 +11,8 @@ import {
   getVideoSessionRecord,
   putVideoSessionRecord,
 } from "./lib/video-session-records";
-import { logActivity } from "./lib/activity-log";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { logActivity } from "./lib/activity-log.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 function structureTranscript(transcript: string): string {
   const lines = transcript

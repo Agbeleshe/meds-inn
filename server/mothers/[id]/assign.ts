@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById, getUserById } from "../../lib/auth";
-import { getMotherRecordResolved, putMotherRecordResolved, normalizeMotherRecord } from "../../lib/mothers";
-import { createNotification } from "../../lib/notifications";
-import { json, methodNotAllowed, readBody } from "../../lib/handler";
+import { getBearerToken, getUserRecordById, getUserById } from "../../lib/auth.js";
+import { getMotherRecordResolved, putMotherRecordResolved, normalizeMotherRecord } from "../../lib/mothers.js";
+import { createNotification } from "../../lib/notifications.js";
+import { json, methodNotAllowed, readBody } from "../../lib/handler.js";
 
 /** PATCH /api/mothers/:id/assign — admin assigns nurse & doctor */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast, putMotherRecordResolved, getMotherRecordResolved } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { listSymptomRecords, putSymptomRecord } from "./lib/symptom-records";
-import { createNotification } from "./lib/notifications";
-import { logActivity } from "./lib/activity-log";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast, putMotherRecordResolved, getMotherRecordResolved } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { listSymptomRecords, putSymptomRecord } from "./lib/symptom-records.js";
+import { createNotification } from "./lib/notifications.js";
+import { logActivity } from "./lib/activity-log.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET/POST /api/symptoms */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

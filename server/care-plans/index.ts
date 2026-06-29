@@ -1,15 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { listMotherRecordsFast } from "../lib/mothers";
-import { getCarePlanRecord } from "../lib/care-plans";
-import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates";
-import { processDailyChecklist, type DailyChecklistAssignment } from "../lib/checklist-daily";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { listMotherRecordsFast } from "../lib/mothers.js";
+import { getCarePlanRecord } from "../lib/care-plans.js";
+import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates.js";
+import { processDailyChecklist, type DailyChecklistAssignment } from "../lib/checklist-daily.js";
 import {
   canEditMotherCare,
   isAssignedToMother,
   filterMothersByAssignmentTab,
 } from "../../src/lib/assignments";
-import { json, methodNotAllowed } from "../lib/handler";
+import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET /api/care-plans — summaries for role-filtered mothers */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

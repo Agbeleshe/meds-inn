@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { getMotherRecordResolved } from "../lib/mothers";
-import { createNotification } from "../lib/notifications";
-import { resolveMotherUserId } from "../lib/fast-fallback";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { getMotherRecordResolved } from "../lib/mothers.js";
+import { createNotification } from "../lib/notifications.js";
+import { resolveMotherUserId } from "../lib/fast-fallback.js";
 import {
   buildThreadId,
   formatMessageTime,
@@ -17,10 +17,10 @@ import {
   canStartChatWithSpecialist,
   filterChatThreadsForUser,
 } from "../../src/lib/chat-access";
-import { getSpecialistProfile } from "../../src/lib/specialist-profiles";
-import { firstMessageSubject } from "../../src/lib/chat-display";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
-import type { ChatMessage, ChatThread } from "../../src/types/clinical";
+import { getSpecialistProfile } from "../../src/lib/specialist-profiles.js";
+import { firstMessageSubject } from "../../src/lib/chat-display.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
+import type { ChatMessage, ChatThread } from "../../src/types/clinical.js";
 
 /** GET/POST /api/messages/threads */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

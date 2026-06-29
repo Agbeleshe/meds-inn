@@ -5,8 +5,8 @@ import {
   ENTITY_PREFIX,
   stripKeys,
 } from "./dynamodb";
-import { prefixFilter, toDocumentItem } from "./items";
-import { withTimeout } from "./fast-fallback";
+import { prefixFilter, toDocumentItem } from "./items.js";
+import { withTimeout } from "./fast-fallback.js";
 import {
   deleteDocumentSession,
   getDocumentSessionContent,

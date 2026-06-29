@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { markNotificationRead } from "../lib/notifications";
-import { json, methodNotAllowed } from "../lib/handler";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { markNotificationRead } from "../lib/notifications.js";
+import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** PATCH /api/notifications/:id — mark one notification as read */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

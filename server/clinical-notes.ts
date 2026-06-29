@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { listClinicalNoteRecords, putClinicalNoteRecord } from "./lib/clinical-note-records";
-import { findMotherUserId } from "./lib/appointment-notify";
-import { createNotification } from "./lib/notifications";
-import { logActivity } from "./lib/activity-log";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { listClinicalNoteRecords, putClinicalNoteRecord } from "./lib/clinical-note-records.js";
+import { findMotherUserId } from "./lib/appointment-notify.js";
+import { createNotification } from "./lib/notifications.js";
+import { logActivity } from "./lib/activity-log.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET/POST /api/clinical-notes */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

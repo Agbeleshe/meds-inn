@@ -7,9 +7,9 @@ import {
   SORT_KEY,
   stripKeys,
 } from "./dynamodb";
-import { prefixFilter, toMedicationDoseItem, toMedicationItem } from "./items";
-import { withTimeout } from "./fast-fallback";
-import { MEDICATIONS } from "../../src/lib/demo-data";
+import { prefixFilter, toMedicationDoseItem, toMedicationItem } from "./items.js";
+import { withTimeout } from "./fast-fallback.js";
+import { MEDICATIONS } from "../../src/lib/demo-data.js";
 
 export function defaultScheduleTimes(frequency: string): string[] {
   const f = frequency.toLowerCase();

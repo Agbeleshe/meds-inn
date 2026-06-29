@@ -1,11 +1,11 @@
-import { filterMothersForRole, filterAppointmentsForRole } from "../../src/lib/assignments";
-import { listMotherRecordsFast } from "./mothers";
-import { listAppointmentRecords, applyMissedStatus } from "./appointment-records";
-import { listMedicationRecords, listDoseRecords } from "./medication-records";
-import { getCarePlanRecord } from "./care-plans";
-import { processDailyChecklist } from "./checklist-daily";
-import { listChatThreadRecords, listChatMessageRecords } from "./chat-records";
-import { buildDashboardMetrics } from "./dashboard-metrics";
+import { filterMothersForRole, filterAppointmentsForRole } from "../../src/lib/assignments.js";
+import { listMotherRecordsFast } from "./mothers.js";
+import { listAppointmentRecords, applyMissedStatus } from "./appointment-records.js";
+import { listMedicationRecords, listDoseRecords } from "./medication-records.js";
+import { getCarePlanRecord } from "./care-plans.js";
+import { processDailyChecklist } from "./checklist-daily.js";
+import { listChatThreadRecords, listChatMessageRecords } from "./chat-records.js";
+import { buildDashboardMetrics } from "./dashboard-metrics.js";
 
 export type AnalyticsRange = "1m" | "3m" | "6m" | "1y";
 

@@ -4,9 +4,9 @@ import {
   TABLE_NAME,
   stripKeys,
 } from "./dynamodb";
-import { prefixFilter, toAppointmentItem } from "./items";
-import { withTimeout } from "./fast-fallback";
-import { APPOINTMENTS } from "../../src/lib/demo-data";
+import { prefixFilter, toAppointmentItem } from "./items.js";
+import { withTimeout } from "./fast-fallback.js";
+import { APPOINTMENTS } from "../../src/lib/demo-data.js";
 import {
   listAppointmentSessions,
   saveAppointmentSession,

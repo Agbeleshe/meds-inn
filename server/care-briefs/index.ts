@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { canEditMotherCare } from "../../src/lib/assignments";
-import { filterMothersForRole } from "../../src/lib/assignments";
-import { listMotherRecordsFast } from "../lib/mothers";
-import { getCareBriefRecord, putCareBriefRecord } from "../lib/care-brief-records";
-import { gatherCareBriefContext } from "../lib/care-brief-context";
-import { generateCareBriefFromContext } from "../lib/care-brief-generator";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { canEditMotherCare } from "../../src/lib/assignments.js";
+import { filterMothersForRole } from "../../src/lib/assignments.js";
+import { listMotherRecordsFast } from "../lib/mothers.js";
+import { getCareBriefRecord, putCareBriefRecord } from "../lib/care-brief-records.js";
+import { gatherCareBriefContext } from "../lib/care-brief-context.js";
+import { generateCareBriefFromContext } from "../lib/care-brief-generator.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 /** GET/POST /api/care-briefs — list briefs; POST regenerateAll */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -1,14 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { listMotherRecordsFast } from "../lib/mothers";
-import { canAccessMother } from "../lib/access";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { listMotherRecordsFast } from "../lib/mothers.js";
+import { canAccessMother } from "../lib/access.js";
 import {
   deleteDocumentRecord,
   documentMetaToClient,
   getDocumentContentBase64,
   getDocumentMeta,
 } from "../lib/document-records";
-import { json, methodNotAllowed } from "../lib/handler";
+import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET/DELETE /api/documents/:id — download or delete */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

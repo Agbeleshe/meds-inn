@@ -1,7 +1,7 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
-import { findDemoUserRecord, getDemoUserRecordById } from "./demo-auth";
-import { withTimeout } from "./fast-fallback";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
+import { findDemoUserRecord, getDemoUserRecordById } from "./demo-auth.js";
+import { withTimeout } from "./fast-fallback.js";
 
 const SESSION_PREFIX = "Bearer ";
 

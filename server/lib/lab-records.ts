@@ -1,8 +1,8 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
-import { toLabItem } from "./items";
-import { LAB_RESULTS } from "../../src/lib/demo-data";
-import { listLabSessions, saveLabSession } from "./lab-session-store";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
+import { toLabItem } from "./items.js";
+import { LAB_RESULTS } from "../../src/lib/demo-data.js";
+import { listLabSessions, saveLabSession } from "./lab-session-store.js";
 
 export function normalizeLab(raw: Record<string, unknown>) {
   return {

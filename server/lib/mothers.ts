@@ -1,5 +1,5 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import type { RiskLevel, PatientStatus } from "../../src/types/clinical";
+import type { RiskLevel, PatientStatus } from "../../src/types/clinical.js";
 import {
   dynamodb,
   TABLE_NAME,
@@ -8,9 +8,9 @@ import {
   SORT_KEY,
   stripKeys,
 } from "./dynamodb";
-import { motherListFilter, toMotherItem } from "./items";
-import { PATIENTS } from "../../src/lib/demo-data";
-import { withTimeout } from "./fast-fallback";
+import { motherListFilter, toMotherItem } from "./items.js";
+import { PATIENTS } from "../../src/lib/demo-data.js";
+import { withTimeout } from "./fast-fallback.js";
 import {
   getMotherSession,
   getAllMotherSessions,

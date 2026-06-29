@@ -1,5 +1,5 @@
-import type { CareBriefRecord } from "./care-brief-records";
-import type { CareBriefContext } from "./care-brief-context";
+import type { CareBriefRecord } from "./care-brief-records.js";
+import type { CareBriefContext } from "./care-brief-context.js";
 
 const SYMPTOM_KEYWORDS = [
   "fatigue",

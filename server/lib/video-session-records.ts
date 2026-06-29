@@ -7,7 +7,7 @@ import {
   SORT_KEY,
   stripKeys,
 } from "./dynamodb";
-import { toVideoSessionItem } from "./items";
+import { toVideoSessionItem } from "./items.js";
 import {
   getVideoSessionSession,
   saveVideoSessionSession,

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { listMotherRecordsFast } from "../lib/mothers";
-import { filterMedicationsForRole, canPrescribeMedicationForPatient } from "../../src/lib/assignments";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { listMotherRecordsFast } from "../lib/mothers.js";
+import { filterMedicationsForRole, canPrescribeMedicationForPatient } from "../../src/lib/assignments.js";
 import {
   listMedicationRecords,
   listDoseRecords,
@@ -12,8 +12,8 @@ import {
   computeAdherenceStats,
   getMedicationRecordById,
 } from "../lib/medication-records";
-import { createNotification } from "../lib/notifications";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { createNotification } from "../lib/notifications.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 /** GET/POST /api/medications/doses — today's doses & dose history */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

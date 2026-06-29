@@ -1,15 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast, getMotherRecordResolved, putMotherRecordResolved } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX } from "./lib/dynamodb";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast, getMotherRecordResolved, putMotherRecordResolved } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX } from "./lib/dynamodb.js";
 import {
   babyWeeksFromBirthDate,
   getBabyProfileRecord,
   normalizeBabyProfile,
 } from "./lib/baby-records";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 async function putBabyProfile(motherId: string, profile: Record<string, unknown>) {
   const normalized = normalizeBabyProfile(profile, motherId);

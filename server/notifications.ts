@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listNotifications } from "./lib/notifications";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listNotifications } from "./lib/notifications.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/notifications */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

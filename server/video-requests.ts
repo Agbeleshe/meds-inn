@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast, getMotherRecordResolved, putMotherRecordResolved } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { createNotification } from "./lib/notifications";
-import { logActivity } from "./lib/activity-log";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast, getMotherRecordResolved, putMotherRecordResolved } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { createNotification } from "./lib/notifications.js";
+import { logActivity } from "./lib/activity-log.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 /** GET pending video requests (clinical staff) · POST mother request */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -1,7 +1,7 @@
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
-import { toClinicalNoteItem } from "./items";
-import { listClinicalNoteSessions, saveClinicalNoteSession } from "./clinical-note-session-store";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
+import { toClinicalNoteItem } from "./items.js";
+import { listClinicalNoteSessions, saveClinicalNoteSession } from "./clinical-note-session-store.js";
 
 export function normalizeClinicalNote(raw: Record<string, unknown>) {
   return {

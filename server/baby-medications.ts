@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
-import { listBabyMedicationRecords, putBabyMedicationRecord } from "./lib/baby-records";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
+import { listBabyMedicationRecords, putBabyMedicationRecord } from "./lib/baby-records.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = getBearerToken(req);

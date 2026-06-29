@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listActivityLog } from "./lib/activity-log";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listActivityLog } from "./lib/activity-log.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/activity-log — admin activity feed */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

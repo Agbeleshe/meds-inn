@@ -1,15 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { canAccessMother } from "../lib/access";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { canAccessMother } from "../lib/access.js";
 import {
   getMotherRecordResolved,
   putMotherRecordResolved,
   trimesterFromWeeks,
 } from "../lib/mothers";
-import { createNotification } from "../lib/notifications";
-import { findMotherUserId } from "../lib/appointment-notify";
-import { getWeekEducation } from "../../src/lib/pregnancy-week-education";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { createNotification } from "../lib/notifications.js";
+import { findMotherUserId } from "../lib/appointment-notify.js";
+import { getWeekEducation } from "../../src/lib/pregnancy-week-education.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 function gestationalWeekFromEdd(edd: string, referenceDate = new Date()): number | null {
   if (!edd || !/^\d{4}-\d{2}-\d{2}$/.test(edd)) return null;

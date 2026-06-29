@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { DocumentMeta } from "./document-records";
+import type { DocumentMeta } from "./document-records.js";
 
 /**
  * Document fallback store when DynamoDB is unavailable.

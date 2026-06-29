@@ -7,7 +7,7 @@ import {
   SORT_KEY,
   stripKeys,
 } from "./dynamodb";
-import { getCareBriefSession, saveCareBriefSession } from "./care-brief-session-store";
+import { getCareBriefSession, saveCareBriefSession } from "./care-brief-session-store.js";
 
 export interface CareBriefRecord {
   id: string;

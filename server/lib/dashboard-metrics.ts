@@ -1,12 +1,12 @@
-import { filterMothersForRole, filterAppointmentsForRole } from "../../src/lib/assignments";
-import { listMotherRecordsFast } from "./mothers";
-import { listAppointmentRecords, applyMissedStatus } from "./appointment-records";
-import { listMedicationRecords } from "./medication-records";
-import { listNotifications } from "./notifications";
-import { withTimeout } from "./fast-fallback";
+import { filterMothersForRole, filterAppointmentsForRole } from "../../src/lib/assignments.js";
+import { listMotherRecordsFast } from "./mothers.js";
+import { listAppointmentRecords, applyMissedStatus } from "./appointment-records.js";
+import { listMedicationRecords } from "./medication-records.js";
+import { listNotifications } from "./notifications.js";
+import { withTimeout } from "./fast-fallback.js";
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./dynamodb";
-import { prefixFilter } from "./items";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./dynamodb.js";
+import { prefixFilter } from "./items.js";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);

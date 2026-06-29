@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { HOSPITALS } from "../src/lib/hospitals";
-import { json, methodNotAllowed } from "./lib/handler";
+import { HOSPITALS } from "../src/lib/hospitals.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/hospitals — partner hospitals for login/signup dropdowns */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

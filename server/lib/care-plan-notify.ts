@@ -1,5 +1,5 @@
-import { createNotification } from "./notifications";
-import { findMotherUserId } from "./appointment-notify";
+import { createNotification } from "./notifications.js";
+import { findMotherUserId } from "./appointment-notify.js";
 
 export async function notifyMotherCarePlanAssigned(input: {
   patientId: string;

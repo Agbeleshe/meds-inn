@@ -1,8 +1,8 @@
 import { GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
-import { toCarePlanItem } from "./items";
-import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates";
-import { getCarePlanSession, saveCarePlanSession } from "./care-plan-session-store";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
+import { toCarePlanItem } from "./items.js";
+import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates.js";
+import { getCarePlanSession, saveCarePlanSession } from "./care-plan-session-store.js";
 
 export async function getCarePlanRecord(motherId: string) {
   const session = getCarePlanSession(motherId);

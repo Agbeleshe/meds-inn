@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { canAccessMotherId } from "../lib/access";
-import { canEditMotherCare } from "../../src/lib/assignments";
-import { getMotherRecordResolved } from "../lib/mothers";
-import { getCarePlanRecord, putCarePlanRecord } from "../lib/care-plans";
-import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { canAccessMotherId } from "../lib/access.js";
+import { canEditMotherCare } from "../../src/lib/assignments.js";
+import { getMotherRecordResolved } from "../lib/mothers.js";
+import { getCarePlanRecord, putCarePlanRecord } from "../lib/care-plans.js";
+import { buildDefaultCarePlan } from "../../src/lib/care-plan-templates.js";
 import {
   buildDailyChecklistAssignment,
   processDailyChecklist,
@@ -12,8 +12,8 @@ import {
   toggleDailyChecklistItem,
   type DailyChecklistAssignment,
 } from "../lib/checklist-daily";
-import { notifyMotherCarePlanAssigned } from "../lib/care-plan-notify";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { notifyMotherCarePlanAssigned } from "../lib/care-plan-notify.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 async function enrichPlanResponse(
   motherId: string,

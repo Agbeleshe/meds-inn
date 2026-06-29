@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../../lib/auth";
-import { createNotification } from "../../lib/notifications";
-import { resolveMotherUserId } from "../../lib/fast-fallback";
-import { getMotherRecordResolved } from "../../lib/mothers";
+import { getBearerToken, getUserRecordById } from "../../lib/auth.js";
+import { createNotification } from "../../lib/notifications.js";
+import { resolveMotherUserId } from "../../lib/fast-fallback.js";
+import { getMotherRecordResolved } from "../../lib/mothers.js";
 import {
   formatMessageTime,
   getChatThreadRecord,
@@ -12,12 +12,12 @@ import {
   sanitizeMessageForRole,
   updateChatMessageRecord,
 } from "../../lib/chat-records";
-import { canAccessChatThread, canStartChatWithSpecialist } from "../../../src/lib/chat-access";
-import { firstMessageSubject } from "../../../src/lib/chat-display";
-import { CHAT_EDIT_WINDOW_MS } from "../../../src/lib/chat-constants";
-import { getSpecialistProfile } from "../../../src/lib/specialist-profiles";
-import { json, methodNotAllowed, readBody } from "../../lib/handler";
-import type { ChatMessage, ChatThread } from "../../../src/types/clinical";
+import { canAccessChatThread, canStartChatWithSpecialist } from "../../../src/lib/chat-access.js";
+import { firstMessageSubject } from "../../../src/lib/chat-display.js";
+import { CHAT_EDIT_WINDOW_MS } from "../../../src/lib/chat-constants.js";
+import { getSpecialistProfile } from "../../../src/lib/specialist-profiles.js";
+import { json, methodNotAllowed, readBody } from "../../lib/handler.js";
+import type { ChatMessage, ChatThread } from "../../../src/types/clinical.js";
 
 const PLACEHOLDER_SUBJECTS = new Set(["", "New conversation", "Care team chat"]);
 

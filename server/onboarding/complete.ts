@@ -5,9 +5,9 @@ import {
   putUserItem,
   stripSensitive,
 } from "../lib/auth";
-import { getMotherRecordById, putMotherRecord, trimesterFromWeeks } from "../lib/mothers";
-import { toUserItem } from "../lib/items";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { getMotherRecordById, putMotherRecord, trimesterFromWeeks } from "../lib/mothers.js";
+import { toUserItem } from "../lib/items.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 interface OnboardingBody {
   age?: number;

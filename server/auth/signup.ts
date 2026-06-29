@@ -1,15 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { randomUUID } from "node:crypto";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME } from "../lib/dynamodb";
+import { dynamodb, TABLE_NAME } from "../lib/dynamodb.js";
 import {
   normalizeUsername,
   putUserWithLookup,
   stripSensitive,
   emailTaken,
 } from "../lib/auth";
-import { toMotherItem, toUserItem, toUserLookupItem } from "../lib/items";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { toMotherItem, toUserItem, toUserLookupItem } from "../lib/items.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 interface SignupBody {
   firstName?: string;

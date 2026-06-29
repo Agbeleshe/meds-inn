@@ -1,4 +1,4 @@
-import { DEMO_USERS } from "../../src/lib/demo-users";
+import { DEMO_USERS } from "../../src/lib/demo-users.js";
 
 export function normalizeUsername(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");

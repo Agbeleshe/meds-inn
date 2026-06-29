@@ -7,9 +7,9 @@ import {
   SORT_KEY,
   stripKeys,
 } from "./dynamodb";
-import { withTimeout } from "./fast-fallback";
-import { toChatMessageItem, toChatThreadItem, prefixFilter } from "./items";
-import { buildThreadId } from "../../src/lib/chat-demo-data";
+import { withTimeout } from "./fast-fallback.js";
+import { toChatMessageItem, toChatThreadItem, prefixFilter } from "./items.js";
+import { buildThreadId } from "../../src/lib/chat-demo-data.js";
 import {
   getChatThreadSession,
   listChatMessageSessions,
@@ -18,7 +18,7 @@ import {
   saveChatThreadSession,
   updateChatMessageSession,
 } from "./chat-session-store";
-import type { ChatMessage, ChatThread } from "../../src/types/clinical";
+import type { ChatMessage, ChatThread } from "../../src/types/clinical.js";
 
 function normalizeThread(raw: Record<string, unknown>): ChatThread {
   return {

@@ -1,4 +1,4 @@
-import { isAssignedToMother } from "../../src/lib/assignments";
+import { isAssignedToMother } from "../../src/lib/assignments.js";
 
 /** Shared mother access checks for authenticated API routes */
 export function canAccessMother(

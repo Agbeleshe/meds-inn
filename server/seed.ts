@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME } from "./lib/dynamodb";
+import { dynamodb, TABLE_NAME } from "./lib/dynamodb.js";
 import {
   toAppointmentItem,
   toCarePlanItem,
@@ -15,8 +15,8 @@ import {
   toUserItem,
   toUserLookupItem,
 } from "./lib/items";
-import { json, methodNotAllowed } from "./lib/handler";
-import { DEMO_USERS, HOSPITALS } from "../src/lib/demo-users";
+import { json, methodNotAllowed } from "./lib/handler.js";
+import { DEMO_USERS, HOSPITALS } from "../src/lib/demo-users.js";
 import {
   APPOINTMENTS,
   DOCUMENTS,
@@ -26,8 +26,8 @@ import {
   PATIENTS,
   TEAM_MEMBERS,
 } from "../src/lib/demo-data";
-import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events";
-import { buildDefaultCarePlan } from "../src/lib/care-plan-templates";
+import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events.js";
+import { buildDefaultCarePlan } from "../src/lib/care-plan-templates.js";
 
 const CHUNK = 25;
 const DEFAULT_PATIENT_ID = "MED-ELR-24018";

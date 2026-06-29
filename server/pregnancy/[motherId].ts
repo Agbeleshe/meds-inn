@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { canAccessMotherId } from "../lib/access";
-import { getMotherRecordById } from "../lib/mothers";
-import { applyPregnancyProgress } from "../../src/lib/pregnancy-stages";
-import { json, methodNotAllowed } from "../lib/handler";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { canAccessMotherId } from "../lib/access.js";
+import { getMotherRecordById } from "../lib/mothers.js";
+import { applyPregnancyProgress } from "../../src/lib/pregnancy-stages.js";
+import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET /api/pregnancy/:motherId — stages with progress from mother profile */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

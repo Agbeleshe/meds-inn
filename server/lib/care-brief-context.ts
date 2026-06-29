@@ -1,10 +1,10 @@
-import { getMotherRecordResolved } from "./mothers";
-import { listAppointmentRecords, applyMissedStatus } from "./appointment-records";
-import { listMedicationRecords } from "./medication-records";
-import { getCarePlanRecord } from "./care-plans";
-import { processDailyChecklist } from "./checklist-daily";
-import { listChatThreadRecords, listChatMessageRecords } from "./chat-records";
-import { listSymptomRecords } from "./symptom-records";
+import { getMotherRecordResolved } from "./mothers.js";
+import { listAppointmentRecords, applyMissedStatus } from "./appointment-records.js";
+import { listMedicationRecords } from "./medication-records.js";
+import { getCarePlanRecord } from "./care-plans.js";
+import { processDailyChecklist } from "./checklist-daily.js";
+import { listChatThreadRecords, listChatMessageRecords } from "./chat-records.js";
+import { listSymptomRecords } from "./symptom-records.js";
 import {
   getBabyProfileRecord,
   listBabySymptomRecords,

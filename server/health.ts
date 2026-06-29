@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { json, methodNotAllowed } from "./lib/handler";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/health — quick check that API routes and AWS env are wired */
 export default function handler(_req: VercelRequest, res: VercelResponse) {

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { filterMothersForRole } from "../src/lib/assignments";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { json, methodNotAllowed } from "./lib/handler";
+import { filterMothersForRole } from "../src/lib/assignments.js";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 function userRefFromRecord(user: Record<string, unknown>, hospitalId: string) {
   return {

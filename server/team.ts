@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./lib/dynamodb";
-import { prefixFilter } from "./lib/items";
-import { json, methodNotAllowed } from "./lib/handler";
+import { dynamodb, TABLE_NAME, ENTITY_PREFIX, stripKeys } from "./lib/dynamodb.js";
+import { prefixFilter } from "./lib/items.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/team — optional ?hospitalId= */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

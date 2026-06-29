@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { json, methodNotAllowed } from "./lib/handler";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/escalations — open escalated cases for admin and assigned clinical staff */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

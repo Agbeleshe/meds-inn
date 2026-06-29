@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatThread } from "../../src/types/clinical";
+import type { ChatMessage, ChatThread } from "../../src/types/clinical.js";
 
 const threads = new Map<string, ChatThread>();
 const messagesByThread = new Map<string, ChatMessage[]>();

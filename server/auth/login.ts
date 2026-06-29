@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { findUserByCredentials, stripSensitive } from "../lib/auth";
-import { findDemoUserRecord, getDemoUserRecordById } from "../lib/demo-auth";
-import { json, methodNotAllowed, readBody } from "../lib/handler";
+import { findUserByCredentials, stripSensitive } from "../lib/auth.js";
+import { findDemoUserRecord, getDemoUserRecordById } from "../lib/demo-auth.js";
+import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 interface LoginBody {
   email?: string;

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "../lib/auth";
-import { buildDashboardMetrics } from "../lib/dashboard-metrics";
-import { json, methodNotAllowed } from "../lib/handler";
+import { getBearerToken, getUserRecordById } from "../lib/auth.js";
+import { buildDashboardMetrics } from "../lib/dashboard-metrics.js";
+import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET /api/dashboard/metrics — role-scoped dashboard data */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

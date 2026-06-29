@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerToken, getUserRecordById } from "./lib/auth";
-import { listMotherRecordsFast } from "./lib/mothers";
-import { canAccessMother } from "./lib/access";
+import { getBearerToken, getUserRecordById } from "./lib/auth.js";
+import { listMotherRecordsFast } from "./lib/mothers.js";
+import { canAccessMother } from "./lib/access.js";
 import {
   documentMetaToClient,
   documentStorageSource,
@@ -9,10 +9,10 @@ import {
   MAX_DOCUMENT_BYTES,
   putDocumentRecord,
 } from "./lib/document-records";
-import { listDocumentSessions } from "./lib/document-session-store";
-import { json, methodNotAllowed, readBody } from "./lib/handler";
-import { createNotification } from "./lib/notifications";
-import { resolveMotherUserId } from "./lib/fast-fallback";
+import { listDocumentSessions } from "./lib/document-session-store.js";
+import { json, methodNotAllowed, readBody } from "./lib/handler.js";
+import { createNotification } from "./lib/notifications.js";
+import { resolveMotherUserId } from "./lib/fast-fallback.js";
 
 function filterDocumentsForUser(
   user: Record<string, unknown>,
