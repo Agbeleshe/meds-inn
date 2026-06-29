@@ -52,7 +52,7 @@ export function todayDateString() {
 }
 
 function demoAppointments(hospitalId: string) {
-  return APPOINTMENTS.filter((a) => (a.hospitalId ?? "ELR") === hospitalId).map((a) =>
+  return APPOINTMENTS.filter((a) => ((a as unknown as { hospitalId?: string }).hospitalId ?? "ELR") === hospitalId).map((a) =>
     normalizeAppointment(a as unknown as Record<string, unknown>),
   );
 }

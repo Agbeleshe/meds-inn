@@ -67,7 +67,7 @@ export async function gatherCareBriefContext(motherId: string, hospitalId = "ELR
       plan.dailyChecklist as Parameters<typeof processDailyChecklist>[1],
     );
     checklistAdherence = processed.adherence?.adherencePercent ?? null;
-    dailyTaskCount = plan.dailyChecklist.items?.length ?? 0;
+    dailyTaskCount = ((plan.dailyChecklist as { items?: unknown[] } | null)?.items?.length) ?? 0;
     const yesterday = processed.yesterdaySummary;
     if (yesterday?.abscondedItems?.length) {
       abscondedYesterday = yesterday.abscondedItems.map((i) => i.text);

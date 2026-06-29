@@ -1,5 +1,5 @@
 import type { ChatThread } from "@/types/clinical";
-import { isAssignedToMother } from "./assignments";
+import { isAssignedToMotherById } from "./assignments";
 
 type UserRef = {
   id: string;
@@ -58,7 +58,7 @@ export function canStartChatWithSpecialist(
   }
   if (user.role === "admin") return true;
   if (user.role === "nurse" || user.role === "doctor") {
-    return isAssignedToMother(user, mother) && user.id === specialistUserId;
+    return isAssignedToMotherById(user, mother) && user.id === specialistUserId;
   }
   return false;
 }

@@ -76,25 +76,28 @@ export function toMessageItem(message: Record<string, unknown>) {
   return withKeys(`${ENTITY_PREFIX.message}${id}`, "METADATA", "MESSAGE", message);
 }
 
-export function toChatThreadItem(thread: Record<string, unknown>) {
-  const id = String(thread.id);
-  return withKeys(`${ENTITY_PREFIX.chat}${id}`, "METADATA", "CHAT_THREAD", thread);
+export function toChatThreadItem(thread: object) {
+  const t = thread as Record<string, unknown>;
+  const id = String(t.id);
+  return withKeys(`${ENTITY_PREFIX.chat}${id}`, "METADATA", "CHAT_THREAD", t);
 }
 
-export function toChatMessageItem(message: Record<string, unknown>, threadId: string) {
-  const id = String(message.id);
-  const createdAt = String(message.createdAt);
+export function toChatMessageItem(message: object, threadId: string) {
+  const m = message as Record<string, unknown>;
+  const id = String(m.id);
+  const createdAt = String(m.createdAt);
   return withKeys(
     `${ENTITY_PREFIX.chat}${threadId}`,
     `MSG#${createdAt}#${id}`,
     "CHAT_MSG",
-    { ...message, threadId },
+    { ...m, threadId },
   );
 }
 
-export function toDocumentItem(document: Record<string, unknown>) {
-  const id = String(document.id);
-  return withKeys(`${ENTITY_PREFIX.document}${id}`, "METADATA", "DOCUMENT", document);
+export function toDocumentItem(document: object) {
+  const d = document as Record<string, unknown>;
+  const id = String(d.id);
+  return withKeys(`${ENTITY_PREFIX.document}${id}`, "METADATA", "DOCUMENT", d);
 }
 
 export function toSymptomItem(symptom: Record<string, unknown>, patientId: string) {
@@ -119,15 +122,16 @@ export function toClinicalNoteItem(note: Record<string, unknown>, patientId: str
   );
 }
 
-export function toActivityItem(activity: Record<string, unknown>) {
-  const id = String(activity.id);
-  const createdAt = String(activity.createdAt);
-  const hospitalId = String(activity.hospitalId);
+export function toActivityItem(activity: object) {
+  const a = activity as Record<string, unknown>;
+  const id = String(a.id);
+  const createdAt = String(a.createdAt);
+  const hospitalId = String(a.hospitalId);
   return withKeys(
     `${ENTITY_PREFIX.hospital}${hospitalId}`,
     `ACTIVITY#${createdAt}#${id}`,
     "ACTIVITY",
-    activity,
+    a,
   );
 }
 

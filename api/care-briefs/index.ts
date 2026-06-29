@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerToken, getUserRecordById } from "../lib/auth";
 import { canEditMotherCare } from "../../src/lib/assignments";
 import { filterMothersForRole } from "../../src/lib/assignments";
-import { listMotherRecordsFast, normalizeMotherRecord } from "../lib/mothers";
+import { listMotherRecordsFast } from "../lib/mothers";
 import { getCareBriefRecord, putCareBriefRecord } from "../lib/care-brief-records";
 import { gatherCareBriefContext } from "../lib/care-brief-context";
 import { generateCareBriefFromContext } from "../lib/care-brief-generator";
@@ -30,8 +30,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     hospitalId,
   };
 
-  const allMothers = (await listMotherRecordsFast(hospitalId)).map(normalizeMotherRecord);
-  const mothers = filterMothersForRole(allMothers, userRef);
+  const allMothers = await listMotherRecordsFast(hospitalId);
+  const mothers = filterMothersForRole(allMothers as Parameters<typeof filterMothersForRole>[0], userRef);
 
   if (req.method === "GET") {
     const items = await Promise.all(

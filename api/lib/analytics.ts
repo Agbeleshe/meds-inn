@@ -1,5 +1,5 @@
 import { filterMothersForRole, filterAppointmentsForRole } from "../../src/lib/assignments";
-import { listMotherRecordsFast, normalizeMotherRecord } from "./mothers";
+import { listMotherRecordsFast } from "./mothers";
 import { listAppointmentRecords, applyMissedStatus } from "./appointment-records";
 import { listMedicationRecords, listDoseRecords } from "./medication-records";
 import { getCarePlanRecord } from "./care-plans";
@@ -111,8 +111,8 @@ export async function buildAnalytics(
     hospitalId,
   };
 
-  const allMothers = (await listMotherRecordsFast(hospitalId)).map(normalizeMotherRecord);
-  const mothers = filterMothersForRole(allMothers, userRef);
+  const allMothers = await listMotherRecordsFast(hospitalId);
+  const mothers = filterMothersForRole(allMothers as Parameters<typeof filterMothersForRole>[0], userRef);
   const motherIds = new Set(mothers.map((m) => m.id));
 
   let appointments = applyMissedStatus(await listAppointmentRecords(hospitalId));

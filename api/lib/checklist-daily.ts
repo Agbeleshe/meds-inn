@@ -127,7 +127,7 @@ export async function putChecklistDayRecord(record: ChecklistDayRecord) {
     await dynamodb.send(
       new PutCommand({
         TableName: TABLE_NAME,
-        Item: toDayItem(normalized),
+        Item: toDayItem(normalized) as unknown as Record<string, unknown>,
       }),
     );
   } catch (error) {

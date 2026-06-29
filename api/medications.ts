@@ -8,6 +8,8 @@ import {
   getMedicationRecordById,
   normalizeMedication,
   defaultScheduleTimes,
+  listDoseRecords,
+  computeAdherenceStats,
 } from "./lib/medication-records";
 import { withTimeout } from "./lib/fast-fallback";
 import { MEDICATIONS } from "../src/lib/demo-data";

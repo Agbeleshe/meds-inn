@@ -80,7 +80,7 @@ export function filterMothersForRole(
     return scoped.filter((m) => m.id === user.motherId);
   }
   if (user.role === "nurse" || user.role === "doctor") {
-    return scoped.filter((m) => isAssignedToMother(user, m));
+    return scoped.filter((m) => isAssignedToMotherById(user, m));
   }
   return [];
 }
@@ -101,11 +101,11 @@ export function filterMothersByAssignmentTab(
   }
 
   if (tab === "assigned") {
-    return mothers.filter((m) => isAssignedToMother(user, m));
+    return mothers.filter((m) => isAssignedToMotherById(user, m));
   }
 
   // Specialists only see mothers assigned to them (same as "assigned" tab)
-  return mothers.filter((m) => isAssignedToMother(user, m));
+  return mothers.filter((m) => isAssignedToMotherById(user, m));
 }
 
 export function clinicianMatchesUser(

@@ -41,11 +41,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       mothers.map(async (mother) => {
         const stored = await getCarePlanRecord(String(mother.id));
         const plan = stored ?? buildDefaultCarePlan(String(mother.id));
-        const dailyChecklist = plan.dailyChecklist as DailyChecklistAssignment | undefined;
+        const planRecord = plan as Record<string, unknown>;
+        const dailyChecklist = planRecord.dailyChecklist as DailyChecklistAssignment | undefined;
         const processed = await processDailyChecklist(String(mother.id), dailyChecklist ?? null);
         const checklist = processed.motherChecklist.length > 0
           ? processed.motherChecklist
-          : ((plan.motherChecklist as { done?: boolean }[]) ?? []);
+          : ((planRecord.motherChecklist as { done?: boolean }[]) ?? []);
         const adherencePct = processed.adherence?.adherencePercent ?? (
           checklist.length > 0
             ? Math.round((checklist.filter((c) => c.done).length / checklist.length) * 100)

@@ -1,4 +1,5 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import type { RiskLevel, PatientStatus } from "../../src/types/clinical";
 import {
   dynamodb,
   TABLE_NAME,
@@ -57,8 +58,8 @@ export function normalizeMotherRecord(raw: Record<string, unknown>) {
     age: Number(raw.age ?? 0),
     gestationalWeek: Number(raw.gestationalWeek ?? raw.gestationalWeeks ?? 0),
     trimester: String(raw.trimester ?? "Enrolled"),
-    riskLevel: raw.riskLevel ?? "low",
-    status: raw.status ?? "new",
+    riskLevel: (raw.riskLevel ?? "low") as RiskLevel,
+    status: (raw.status ?? "new") as PatientStatus,
     nurse: String(raw.nurse ?? "To be assigned"),
     doctor: String(raw.doctor ?? "To be assigned"),
     lastCheckIn: String(raw.lastCheckIn ?? ""),
@@ -101,7 +102,7 @@ export function normalizeMotherRecord(raw: Record<string, unknown>) {
 
 /** Paginated scan — Limit alone misses mothers when table has many entity types */
 export async function listMotherRecords(hospitalId?: string) {
-  const mothers: Record<string, unknown>[] = [];
+  const mothers: ReturnType<typeof normalizeMotherRecord>[] = [];
   let lastKey: Record<string, unknown> | undefined;
 
   do {

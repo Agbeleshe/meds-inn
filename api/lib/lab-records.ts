@@ -43,16 +43,16 @@ export async function listLabRecords(patientId: string) {
     for (const item of fromDb) byId.set(item.id, item);
     for (const item of sessionItems) byId.set(item.id, item);
     if (byId.size === 0) {
-      for (const lab of LAB_RESULTS.filter((l) => l.patientId === patientId)) {
-        byId.set(lab.id, normalizeLab(lab as unknown as Record<string, unknown>));
+      for (const lab of (LAB_RESULTS as unknown as Record<string, unknown>[]).filter((l) => l.patientId === patientId)) {
+        byId.set(String(lab.id), normalizeLab(lab));
       }
     }
     return [...byId.values()].sort((a, b) => b.date.localeCompare(a.date));
   } catch (error) {
     console.warn("Lab query failed:", error);
     if (sessionItems.length > 0) return sessionItems.sort((a, b) => b.date.localeCompare(a.date));
-    return LAB_RESULTS.filter((l) => l.patientId === patientId)
-      .map((l) => normalizeLab(l as unknown as Record<string, unknown>))
+    return (LAB_RESULTS as unknown as Record<string, unknown>[]).filter((l) => l.patientId === patientId)
+      .map((l) => normalizeLab(l))
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 }
