@@ -131,4 +131,4 @@ Or use the **Seed demo data** button on Dashboard → Architecture.
 
 push
 
-done.
+and that is done.
