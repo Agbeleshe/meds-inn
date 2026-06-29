@@ -24,18 +24,18 @@ export function toUserItem(user: Record<string, unknown>) {
   return withKeys(`${ENTITY_PREFIX.user}${id}`, "PROFILE", "USER", user);
 }
 
-/** O(1) login lookup — PK encodes username + hospital + role */
-export function userLookupPk(username: string, role: string, hospitalId: string) {
-  const normalized = String(username).trim().toLowerCase().replace(/\s+/g, " ");
+/** O(1) login lookup — PK encodes email + hospital + role */
+export function userLookupPk(email: string, role: string, hospitalId: string) {
+  const normalized = String(email).trim().toLowerCase();
   return `${ENTITY_PREFIX.userLookup}${normalized}#${hospitalId}#${role}`;
 }
 
 export function toUserLookupItem(user: Record<string, unknown>) {
   const id = String(user.id);
-  const username = String(user.username);
+  const email = String(user.email);
   const role = String(user.role);
   const hospitalId = String(user.hospitalId);
-  return withKeys(userLookupPk(username, role, hospitalId), "PROFILE", "USER_LOOKUP", {
+  return withKeys(userLookupPk(email, role, hospitalId), "PROFILE", "USER_LOOKUP", {
     userId: id,
   });
 }
@@ -55,6 +55,17 @@ export function toTeamItem(member: Record<string, unknown>) {
   return withKeys(`${ENTITY_PREFIX.team}${id}`, "PROFILE", "TEAM", member);
 }
 
+export function toMedicationDoseItem(dose: Record<string, unknown>, patientId: string) {
+  const id = String(dose.id);
+  const date = String(dose.date);
+  return withKeys(
+    `${ENTITY_PREFIX.mother}${patientId}`,
+    `MEDDOSE#${date}#${id}`,
+    "MEDDOSE",
+    { ...dose, patientId },
+  );
+}
+
 export function toMedicationItem(medication: Record<string, unknown>) {
   const id = String(medication.id);
   return withKeys(`${ENTITY_PREFIX.medication}${id}`, "METADATA", "MEDICATION", medication);
@@ -65,9 +76,69 @@ export function toMessageItem(message: Record<string, unknown>) {
   return withKeys(`${ENTITY_PREFIX.message}${id}`, "METADATA", "MESSAGE", message);
 }
 
+export function toChatThreadItem(thread: Record<string, unknown>) {
+  const id = String(thread.id);
+  return withKeys(`${ENTITY_PREFIX.chat}${id}`, "METADATA", "CHAT_THREAD", thread);
+}
+
+export function toChatMessageItem(message: Record<string, unknown>, threadId: string) {
+  const id = String(message.id);
+  const createdAt = String(message.createdAt);
+  return withKeys(
+    `${ENTITY_PREFIX.chat}${threadId}`,
+    `MSG#${createdAt}#${id}`,
+    "CHAT_MSG",
+    { ...message, threadId },
+  );
+}
+
 export function toDocumentItem(document: Record<string, unknown>) {
   const id = String(document.id);
   return withKeys(`${ENTITY_PREFIX.document}${id}`, "METADATA", "DOCUMENT", document);
+}
+
+export function toSymptomItem(symptom: Record<string, unknown>, patientId: string) {
+  const id = String(symptom.id);
+  const date = String(symptom.date);
+  return withKeys(
+    `${ENTITY_PREFIX.mother}${patientId}`,
+    `SYMPTOM#${date}#${id}`,
+    "SYMPTOM",
+    { ...symptom, patientId },
+  );
+}
+
+export function toClinicalNoteItem(note: Record<string, unknown>, patientId: string) {
+  const id = String(note.id);
+  const date = String(note.date);
+  return withKeys(
+    `${ENTITY_PREFIX.mother}${patientId}`,
+    `CLINNOTE#${date}#${id}`,
+    "CLINNOTE",
+    { ...note, patientId },
+  );
+}
+
+export function toActivityItem(activity: Record<string, unknown>) {
+  const id = String(activity.id);
+  const createdAt = String(activity.createdAt);
+  const hospitalId = String(activity.hospitalId);
+  return withKeys(
+    `${ENTITY_PREFIX.hospital}${hospitalId}`,
+    `ACTIVITY#${createdAt}#${id}`,
+    "ACTIVITY",
+    activity,
+  );
+}
+
+export function toVideoSessionItem(session: Record<string, unknown>, patientId: string) {
+  const appointmentId = String(session.appointmentId);
+  return withKeys(
+    `${ENTITY_PREFIX.mother}${patientId}`,
+    `VIDEOSESSION#${appointmentId}`,
+    "VIDEOSESSION",
+    { ...session, patientId },
+  );
 }
 
 /** Lab results are stored under the mother partition key */
@@ -79,6 +150,17 @@ export function toLabItem(lab: Record<string, unknown>, patientId: string) {
     `LAB#${date}#${id}`,
     "LAB",
     { ...lab, patientId },
+  );
+}
+
+export function toTimelineItem(event: Record<string, unknown>, motherId: string) {
+  const id = String(event.id);
+  const date = String(event.date);
+  return withKeys(
+    `${ENTITY_PREFIX.mother}${motherId}`,
+    `TIMELINE#${date}#${id}`,
+    "TIMELINE",
+    { ...event, patientId: motherId },
   );
 }
 

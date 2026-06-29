@@ -218,46 +218,43 @@ export function HexagonalGalleryHero() {
           {/* Left — 50% column; inner content capped so text never exceeds 40% of viewport */}
           <div className="flex flex-col justify-center py-12 min-w-0" style={{ width: '50%' }}>
             <div className="px-10 xl:px-16" style={{ maxWidth: '47vw' }}>
-            <motion.div
-              variants={staggerSlow}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col"
-            >
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-secondary text-primary text-xs font-medium mb-7 w-fit">
-              <LogoMark size="xs" />
-              Built for hospitals. Designed around mothers.
-            </motion.div>
-            <motion.h1 variants={fadeUp} className="text-4xl xl:text-5xl font-bold text-foreground leading-[1.1] text-balance mb-5">
-              Maternal care should not end at the{' '}
-              <span className="text-primary">hospital door.</span>
-            </motion.h1>
-            <motion.p variants={fadeUp} className="text-base text-muted-foreground leading-relaxed text-pretty mb-8">
-              Meds-inn helps hospitals guide, monitor, and support mothers from
-              conception through delivery and into the baby's first year.
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-col gap-3">
-              <Link to="/login">
-                <Button size="lg" className="w-full gap-2">
-                  View hospital demo <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" variant="outline" className="w-full">
-                  Explore mother experience
-                </Button>
-              </Link>
-            </motion.div>
-            <motion.p variants={fadeUp} className="text-xs text-muted-foreground mt-3">No account required. All four demo roles.</motion.p>
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mt-7">
-              {[{ val: '8', label: 'care stages' }, { val: '+22%', label: 'adherence lift' }, { val: '< 4 hrs', label: 'nurse response' }].map(s => (
-                <div key={s.label} className="flex items-baseline gap-1 px-3 py-2 rounded-lg border border-border bg-card">
-                  <span className="text-base font-bold text-primary">{s.val}</span>
-                  <span className="text-xs text-muted-foreground">{s.label}</span>
-                </div>
-              ))}
-            </motion.div>
-            </motion.div>
+              <motion.div
+                variants={staggerSlow}
+                initial="hidden"
+                animate="visible"
+                className="flex flex-col"
+              >
+
+                <motion.h1 variants={fadeUp} className="text-4xl xl:text-5xl font-bold text-foreground leading-[1.1] text-balance mb-5">
+                  Maternal care should not end at the{' '}
+                  <span className="text-primary">hospital door.</span>
+                </motion.h1>
+                <motion.p variants={fadeUp} className="text-base text-muted-foreground leading-relaxed text-pretty mb-8">
+                  Meds-inn helps hospitals guide, monitor, and support mothers from
+                  conception through delivery and into the baby's first year.
+                </motion.p>
+                <motion.div variants={fadeUp} className="flex flex-col gap-3">
+                  <Link to="/login">
+                    <Button size="lg" className="w-full gap-2">
+                      View hospital demo <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to="/login">
+                    <Button size="lg" variant="outline" className="w-full">
+                      Explore mother experience
+                    </Button>
+                  </Link>
+                </motion.div>
+                <motion.p variants={fadeUp} className="text-xs text-muted-foreground mt-3">No account required. All four demo roles.</motion.p>
+                <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mt-7">
+                  {[{ val: '8', label: 'care stages' }, { val: '+22%', label: 'adherence lift' }, { val: '< 4 hrs', label: 'nurse response' }].map(s => (
+                    <div key={s.label} className="flex items-baseline gap-1 px-3 py-2 rounded-lg border border-border bg-card">
+                      <span className="text-base font-bold text-primary">{s.val}</span>
+                      <span className="text-xs text-muted-foreground">{s.label}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              </motion.div>
             </div>
           </div>
 

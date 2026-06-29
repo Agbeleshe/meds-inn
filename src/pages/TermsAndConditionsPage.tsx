@@ -80,7 +80,7 @@ export default function TermsAndConditionsPage() {
               <li>Patient enrolment, care plan management, and risk monitoring tools for clinical staff.</li>
               <li>Appointment scheduling, medication reminders, and follow-up coordination.</li>
               <li>AI-assisted care briefs to support clinical decision-making (see section 5).</li>
-              <li>Secure messaging and video consultation infrastructure between care teams and patients.</li>
+              <li>Secure messaging between care teams and patients.</li>
               <li>Baby care tracking, vaccination schedules, and developmental milestone logging.</li>
             </ul>
           </Section>
@@ -90,7 +90,7 @@ export default function TermsAndConditionsPage() {
             <ul className="list-disc pl-5 space-y-1.5">
               <li><strong className="text-foreground">Hospital Admin</strong> — full operational access including team management, analytics, and organisation-level settings.</li>
               <li><strong className="text-foreground">Nurse / Midwife</strong> — patient-facing care coordination access for assigned patients.</li>
-              <li><strong className="text-foreground">Doctor</strong> — clinical review, care plan prescriptions, and video consultation access for assigned patients.</li>
+              <li><strong className="text-foreground">Doctor</strong> — clinical review, care plan prescriptions, and document upload access for assigned patients.</li>
               <li><strong className="text-foreground">Mother / Patient</strong> — read and interaction access limited to the patient's own care journey and communications.</li>
             </ul>
             <p>

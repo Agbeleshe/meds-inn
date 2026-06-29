@@ -12,6 +12,7 @@ export function DataSourceBadge({ loading, source, error }: DataSourceBadgeProps
   if (loading) label = "Loading…";
   else if (error) label = "API error";
   else if (source === "dynamodb") label = "Live · DynamoDB";
+  else if (source === "session") label = "Local session";
 
   return (
     <Badge

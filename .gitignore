@@ -34,3 +34,4 @@ history/*.json
 /tasks
 .vercel
 .env*
+.data

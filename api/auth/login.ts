@@ -4,30 +4,30 @@ import { findDemoUserRecord, getDemoUserRecordById } from "../lib/demo-auth";
 import { json, methodNotAllowed, readBody } from "../lib/handler";
 
 interface LoginBody {
-  username?: string;
+  email?: string;
   password?: string;
   role?: string;
   hospitalId?: string;
 }
 
-/** POST /api/auth/login — username (full name) + password + role + hospital */
+/** POST /api/auth/login — email + password + role + hospital */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
 
   const body = await readBody<LoginBody>(req);
-  const username = body?.username?.trim();
+  const email = body?.email?.trim();
   const password = body?.password;
   const role = body?.role;
   const hospitalId = body?.hospitalId;
 
-  if (!username || !password || !role || !hospitalId) {
+  if (!email || !password || !role || !hospitalId) {
     return json(res, 400, {
-      error: "Username, password, role, and hospital are required",
+      error: "Email, password, role, and hospital are required",
     });
   }
 
   try {
-    const record = await findUserByCredentials(username, role, hospitalId);
+    const record = await findUserByCredentials(email, role, hospitalId);
     if (!record || String(record.password) !== password) {
       return json(res, 401, { error: "Invalid credentials for this role and hospital" });
     }
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, 200, { user, token, source });
   } catch (error) {
     console.error("Login failed:", error);
-    const demo = findDemoUserRecord(username, role, hospitalId);
+    const demo = findDemoUserRecord(email, role, hospitalId);
     if (demo && String(demo.password) === password) {
       const user = stripSensitive(demo);
       return json(res, 200, { user, token: String(user.id), source: "demo" });

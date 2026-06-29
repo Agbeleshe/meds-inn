@@ -3,6 +3,7 @@ import { BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodb, TABLE_NAME } from "./lib/dynamodb";
 import {
   toAppointmentItem,
+  toCarePlanItem,
   toDocumentItem,
   toHospitalItem,
   toLabItem,
@@ -10,6 +11,7 @@ import {
   toMessageItem,
   toMotherItem,
   toTeamItem,
+  toTimelineItem,
   toUserItem,
   toUserLookupItem,
 } from "./lib/items";
@@ -24,6 +26,8 @@ import {
   PATIENTS,
   TEAM_MEMBERS,
 } from "../src/lib/demo-data";
+import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events";
+import { buildDefaultCarePlan } from "../src/lib/care-plan-templates";
 
 const CHUNK = 25;
 const DEFAULT_PATIENT_ID = "MED-ELR-24018";
@@ -47,7 +51,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const mothers = PATIENTS.map((m) =>
-      toMotherItem({ ...m, hospitalId: "ELR" } as unknown as Record<string, unknown>),
+      toMotherItem({
+        ...m,
+        hospitalId: "ELR",
+        nurse: (m as any).nurse ?? "To be assigned",
+        doctor: (m as any).doctor ?? "To be assigned",
+        assignedNurseUserId: (m as any).assignedNurseUserId ?? null,
+        assignedDoctorUserId: (m as any).assignedDoctorUserId ?? null,
+        specialistRequestStatus: null,
+        specialistRequestType: null,
+      } as unknown as Record<string, unknown>),
     );
     const appointments = APPOINTMENTS.map((a) =>
       toAppointmentItem({ ...a, hospitalId: "ELR" } as unknown as Record<string, unknown>),
@@ -65,6 +78,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       toDocumentItem({ ...d, patientId: DEFAULT_PATIENT_ID } as unknown as Record<string, unknown>),
     );
     const labs = LAB_RESULTS.map((l) => toLabItem(l as unknown as Record<string, unknown>, DEFAULT_PATIENT_ID));
+    const carePlan = toCarePlanItem(
+      buildDefaultCarePlan(DEFAULT_PATIENT_ID) as unknown as Record<string, unknown>,
+      DEFAULT_PATIENT_ID,
+    );
+    const timeline = DEFAULT_TIMELINE_EVENTS.map((e) =>
+      toTimelineItem(e as unknown as Record<string, unknown>, DEFAULT_PATIENT_ID),
+    );
     const hospital = HOSPITALS.map((h) => toHospitalItem(h as unknown as Record<string, unknown>));
     const users = DEMO_USERS.map((u) =>
       toUserItem({ ...u, username: u.username.toLowerCase() } as unknown as Record<string, unknown>),
@@ -83,6 +103,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await batchPut(messages);
     await batchPut(documents);
     await batchPut(labs);
+    await batchPut([carePlan]);
+    await batchPut(timeline);
 
     return json(res, 200, {
       table: TABLE_NAME,
@@ -97,6 +119,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         messages: messages.length,
         documents: documents.length,
         labs: labs.length,
+        carePlans: 1,
+        timelineEvents: timeline.length,
       },
     });
   } catch (error) {

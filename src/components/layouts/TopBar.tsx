@@ -9,6 +9,8 @@ import { useTour } from '@/contexts/TourContext';
 import { HOSPITAL } from '@/lib/demo-data';
 import { ROLE_LABELS } from '@/lib/demo-users';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { notificationHref } from '@/lib/notification-links';
 import { toast } from 'sonner';
 import {
   Search, Bell, ChevronDown, Menu, Sun, Moon, MapPin, Info
@@ -28,6 +30,7 @@ import { NAV_DESCRIPTIONS } from '@/lib/nav-descriptions';
 export function TopBar() {
   const { role, currentUser } = useApp();
   const { signOut } = useAuth();
+  const { unread: unreadNotifications, items: notifications, markAsRead } = useNotifications();
   const { theme, toggleTheme } = useTheme();
   const { startTour, startElementTour, mobileMenuOpen, setMobileMenuOpen } = useTour();
   const [localMobileOpen, setLocalMobileOpen] = useState(false);
@@ -171,17 +174,60 @@ export function TopBar() {
         </Button>
 
         {/* Notifications */}
-        <Button
-          data-tour="topbar-notifications"
-          variant="ghost"
-          size="icon"
-          className="relative"
-          onClick={() => toast.info('Notifications')}
-          aria-label="Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              data-tour="topbar-notifications"
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {notifications.length === 0 ? (
+              <DropdownMenuItem disabled className="text-xs text-muted-foreground">No notifications yet</DropdownMenuItem>
+            ) : (
+              notifications.slice(0, 8).map((n) => (
+                <DropdownMenuItem
+                  key={n.id}
+                  className={cn(
+                    'flex flex-col items-start gap-0.5 cursor-pointer py-2.5',
+                    !n.read && 'bg-secondary/50',
+                  )}
+                  onClick={() => {
+                    const href = notificationHref(n);
+                    if (href) {
+                      if (!n.read) void markAsRead(n.id);
+                      navigate(href);
+                    } else {
+                      navigate(`/dashboard/notifications?id=${encodeURIComponent(n.id)}`);
+                    }
+                  }}
+                >
+                  <span className={cn('text-xs', !n.read ? 'font-semibold text-foreground' : 'font-medium')}>
+                    {n.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground line-clamp-2">{n.body}</span>
+                </DropdownMenuItem>
+              ))
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-xs font-medium text-primary cursor-pointer"
+              onClick={() => navigate('/dashboard/notifications')}
+            >
+              View all notifications
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Org name */}
         <span className="hidden md:block text-xs text-muted-foreground truncate max-w-[140px]">{HOSPITAL.shortName}</span>

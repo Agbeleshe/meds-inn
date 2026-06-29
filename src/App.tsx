@@ -7,11 +7,12 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { TourProvider } from '@/contexts/TourContext';
 import { RouteGuard } from '@/components/common/RouteGuard';
+import { PageLoadingProvider } from '@/contexts/PageLoadingContext';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SiteLayout } from '@/components/layouts/SiteLayout';
 import { SplashScreen } from '@/components/SplashScreen';
 import { CookieConsentModal } from '@/components/CookieConsentModal';
-import { HEX_IMAGES } from '@/components/landing/HexagonalGalleryHero';
+import { getAllPreloadImageUrls } from '@/lib/site-images';
 import { preloadImages } from '@/lib/preloadImages';
 import type { PreloadProgress } from '@/lib/preloadImages';
 
@@ -29,9 +30,9 @@ import MothersPage from './pages/MothersPage';
 import MotherProfilePage from './pages/MotherProfilePage';
 import PregnancyTimelinePage from './pages/PregnancyTimelinePage';
 import CarePlansPage from './pages/CarePlansPage';
+import SpecialistWaitingListPage from './pages/SpecialistWaitingListPage';
 import MedicationRemindersPage from './pages/MedicationRemindersPage';
 import AppointmentsPage from './pages/AppointmentsPage';
-import VideoConsultationsPage from './pages/VideoConsultationsPage';
 import AICareBriefsPage from './pages/AICareBriefsPage';
 import MessagesPage from './pages/MessagesPage';
 import BabyCarePage from './pages/BabyCarePage';
@@ -41,11 +42,22 @@ import TeamPage from './pages/TeamPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import MotherOnboardingPage from './pages/MotherOnboardingPage';
 import MotherDashboardPage from './pages/MotherDashboardPage';
+import MotherCareTasksPage from './pages/MotherCareTasksPage';
+import MySpecialistPage from './pages/MySpecialistPage';
+import SymptomLogPage from './pages/SymptomLogPage';
+import VideoCallPage from './pages/VideoCallPage';
+import VideoCallsPage from './pages/VideoCallsPage';
 import SettingsPage from './pages/SettingsPage';
+import NotificationsPage from './pages/NotificationsPage';
+import EscalatedCasesPage from './pages/EscalatedCasesPage';
 import { RoleBasedIndex } from './components/RoleBasedIndex';
 const App: React.FC = () => {
   const [splashDone, setSplashDone] = useState(false);
-  const [loadProgress, setLoadProgress] = useState<PreloadProgress>({ loaded: 0, total: HEX_IMAGES.length, percent: 0 });
+  const [loadProgress, setLoadProgress] = useState<PreloadProgress>({
+    loaded: 0,
+    total: getAllPreloadImageUrls().length,
+    percent: 0,
+  });
   const handleSplashDone = useCallback(() => setSplashDone(true), []);
   const started = useRef(false);
 
@@ -55,8 +67,18 @@ const App: React.FC = () => {
     if (started.current) return;
     started.current = true;
 
-    const urls = HEX_IMAGES.map(({ src }) => src);
-    preloadImages(urls, (p) => setLoadProgress(p));
+    const urls = getAllPreloadImageUrls();
+    preloadImages(urls, (p) => setLoadProgress(p)).then(() => {
+      setLoadProgress((prev) => ({
+        loaded: prev.total || urls.length,
+        total: prev.total || urls.length,
+        percent: 100,
+      }));
+    });
+
+    // Safety net — never block the app if preload or splash animation stalls
+    const fallback = window.setTimeout(() => setSplashDone(true), 20_000);
+    return () => window.clearTimeout(fallback);
   }, []);
 
   return (
@@ -75,6 +97,7 @@ const App: React.FC = () => {
         <Router>
         {splashDone && <CookieConsentModal />}
         <IntersectObserver />
+        <PageLoadingProvider>
         <RouteGuard>
         <Routes>
           {/* Public */}
@@ -100,13 +123,19 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<RoleBasedIndex />} />
             <Route path="mother" element={<MotherDashboardPage />} />
+            <Route path="care-tasks" element={<MotherCareTasksPage />} />
+            <Route path="my-specialist" element={<MySpecialistPage />} />
             <Route path="mothers" element={<MothersPage />} />
             <Route path="mothers/:id" element={<MotherProfilePage />} />
             <Route path="timeline" element={<PregnancyTimelinePage />} />
             <Route path="care-plans" element={<CarePlansPage />} />
+            <Route path="waiting-list" element={<SpecialistWaitingListPage />} />
+            <Route path="escalated" element={<EscalatedCasesPage />} />
             <Route path="medications" element={<MedicationRemindersPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="video" element={<VideoConsultationsPage />} />
+            <Route path="video-calls" element={<VideoCallsPage />} />
+            <Route path="video/:appointmentId" element={<VideoCallPage />} />
+            <Route path="symptoms" element={<SymptomLogPage />} />
             <Route path="care-briefs" element={<AICareBriefsPage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="baby-care" element={<BabyCarePage />} />
@@ -114,12 +143,14 @@ const App: React.FC = () => {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="team" element={<TeamPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </RouteGuard>
+        </PageLoadingProvider>
         <Toaster richColors position="top-right" />
         </Router>
       </AppProvider>

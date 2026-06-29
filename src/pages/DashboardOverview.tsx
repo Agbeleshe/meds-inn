@@ -2,12 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '@/contexts/AppContext';
 import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics';
+import { useActivityLog } from '@/hooks/use-activity-log';
 import { DataSourceBadge } from '@/components/common/DataSourceBadge';
 import { MetricCardsSkeleton, TableSkeleton, ListItemsSkeleton } from '@/components/common/TableSkeleton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ACTIVE_HOSPITAL } from '@/lib/hospitals';
 import { MetricCard } from '@/components/common/MetricCard';
-import { RiskBadge, AdherenceBadge, StatusDot } from '@/components/common/Badges';
+import { RiskBadge, AdherenceBadge } from '@/components/common/Badges';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -15,38 +16,64 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, Activity, AlertTriangle, Calendar, AlertCircle,
-  Baby, Syringe, Clock, Pill, HeartPulse, ArrowRight, Sparkles, Bell
+  Baby, Pill, HeartPulse, ArrowRight, Sparkles, Bell, Stethoscope,
 } from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip
+  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts';
-import { ANALYTICS_DATA } from '@/lib/demo-data';
 
-const ALERTS = [
-  { patient: 'Kemi Adewale', note: 'Blood pressure elevated at last visit. Appointment scheduled tomorrow.', severity: 'high', time: '2h ago' },
-  { patient: 'Adaobi Eze', note: 'Missed appointment on June 14. Follow-up call not yet completed.', severity: 'medium', time: '3 days ago' },
-  { patient: 'Blessing Okoro', note: 'Missed 2 consecutive check-ins. Medication adherence dropped to 70%.', severity: 'medium', time: '5 days ago' },
-  { patient: 'Sarah Ibrahim', note: 'Gestational diabetes monitoring — glucose review pending.', severity: 'low', time: '1 day ago' },
-];
+const TEAL = 'hsl(173, 79%, 24%)';
+const GOLD = 'hsl(38, 53%, 47%)';
+const RED = 'hsl(0, 72%, 50%)';
 
-const NURSE_ACTIVITY = [
-  { name: 'Esther Okonkwo', role: 'Senior Midwife', mothers: 14, responded: 12, initials: 'EO' },
-  { name: 'Mariam Sule', role: 'Maternal Care Nurse', mothers: 11, responded: 11, initials: 'MS' },
-  { name: 'Linda James', role: 'Postpartum Care', mothers: 9, responded: 7, initials: 'LJ' },
-];
+function greetingName(fullName: string) {
+  const hour = new Date().getHours();
+  const first = fullName.split(' ')[0];
+  if (hour < 12) return `Good morning, ${first}`;
+  if (hour < 17) return `Good afternoon, ${first}`;
+  return `Good evening, ${first}`;
+}
 
 export default function DashboardOverview() {
   const { currentUser } = useApp();
-  const { metrics, needFollowUp, upcomingAppointments, teamSnapshot, source, loading } = useDashboardMetrics();
-  const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const {
+    metrics,
+    scope,
+    assignedPatients,
+    needFollowUp,
+    upcomingAppointments,
+    teamSnapshot,
+    recentAlerts,
+    source,
+    loading,
+    error,
+    refetch,
+  } = useDashboardMetrics();
+
+  const isAdmin = scope === 'hospital';
+  const { items: activityLog, loading: activityLoading } = useActivityLog(isAdmin ? 30 : 0);
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  const adherenceChartData = assignedPatients.slice(0, 8).map((p) => ({
+    name: p.name.split(' ')[0],
+    medication: p.medicationAdherence,
+    appointment: p.appointmentAdherence ?? metrics.appointmentAdherence,
+    fullName: p.name,
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div data-tour="overview-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Good morning, {currentUser.name.split(' ')[0]}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{today} · {ACTIVE_HOSPITAL.name}</p>
+          <h1 className="text-xl font-bold text-foreground">{greetingName(currentUser.name)}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {today} · {ACTIVE_HOSPITAL.name}
+            {!isAdmin && (
+              <span className="ml-1.5 text-primary font-medium">· Your assigned patients</span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <DataSourceBadge source={source} loading={loading} />
@@ -65,7 +92,15 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      {/* Metric cards */}
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          Failed to load dashboard: {error.message}
+          <Button variant="link" className="h-auto p-0 ml-2 text-destructive" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
+
       {loading ? (
         <>
           <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -75,33 +110,53 @@ export default function DashboardOverview() {
             <MetricCardsSkeleton count={5} />
           </div>
         </>
-      ) : (
+      ) : isAdmin ? (
         <>
           <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <MetricCard label="Enrolled Mothers" value={metrics.totalMothers} trend="up" trendValue="+5 this month" icon={<Users className="w-4 h-4" />} />
+            <MetricCard label="Enrolled Mothers" value={metrics.totalMothers} icon={<Users className="w-4 h-4" />} />
             <MetricCard label="Active Pregnancies" value={metrics.activePregnancies} icon={<Activity className="w-4 h-4" />} />
             <MetricCard label="High-Risk Cases" value={metrics.highRiskCases} highlight icon={<AlertTriangle className="w-4 h-4" />} />
             <MetricCard label="Today's Appointments" value={metrics.todayAppointments} icon={<Calendar className="w-4 h-4" />} />
-            <MetricCard label="Missed Follow-ups" value={metrics.missedFollowUps} trend="down" trendValue="-2 this week" icon={<AlertCircle className="w-4 h-4" />} />
+            <MetricCard label="Needs Follow-up" value={metrics.missedFollowUps} icon={<AlertCircle className="w-4 h-4" />} />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <MetricCard label="Postpartum Mothers" value={metrics.postpartumMothers} icon={<HeartPulse className="w-4 h-4" />} />
-            <MetricCard label="Team members" value={metrics.teamMembers} icon={<Baby className="w-4 h-4" />} />
-            <MetricCard label="Vaccination Adherence" value="92%" trend="up" trendValue="+3%" icon={<Syringe className="w-4 h-4" />} />
-            <MetricCard label="Avg Nurse Response" value="2.4h" icon={<Clock className="w-4 h-4" />} />
-            <MetricCard label="Medication Adherence" value={`${metrics.medicationAdherence}%`} trend="up" trendValue="+2%" icon={<Pill className="w-4 h-4" />} />
+            <MetricCard label="Postpartum" value={metrics.postpartumMothers} icon={<Baby className="w-4 h-4" />} />
+            <MetricCard label="Team Members" value={metrics.teamMembers} icon={<Stethoscope className="w-4 h-4" />} />
+            <MetricCard label="Med Adherence" value={`${metrics.medicationAdherence}%`} icon={<Pill className="w-4 h-4" />} />
+            <MetricCard label="Appt Attendance" value={`${metrics.appointmentAdherence}%`} icon={<Calendar className="w-4 h-4" />} />
+            <MetricCard label="Care Score" value={metrics.careContinuityScore} highlight icon={<HeartPulse className="w-4 h-4" />} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div data-tour="metric-cards" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCard label="Assigned Mothers" value={metrics.totalMothers} icon={<Users className="w-4 h-4" />} />
+            <MetricCard label="Today's Appointments" value={metrics.todayAppointments} icon={<Calendar className="w-4 h-4" />} />
+            <MetricCard label="Needs Follow-up" value={metrics.missedFollowUps} icon={<AlertCircle className="w-4 h-4" />} />
+            <MetricCard label="High-Risk" value={metrics.highRiskCases} highlight icon={<AlertTriangle className="w-4 h-4" />} />
+            <MetricCard label="Care Score" value={metrics.careContinuityScore} icon={<HeartPulse className="w-4 h-4" />} />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <MetricCard label="Med Adherence" value={`${metrics.medicationAdherence}%`} icon={<Pill className="w-4 h-4" />} />
+            <MetricCard label="Appt Attendance" value={`${metrics.appointmentAdherence}%`} icon={<Calendar className="w-4 h-4" />} />
+            <MetricCard label="Active Pregnancies" value={metrics.activePregnancies} icon={<Activity className="w-4 h-4" />} />
+            <MetricCard label="Postpartum" value={metrics.postpartumMothers} icon={<Baby className="w-4 h-4" />} />
+            <MetricCard label="Upcoming Visits" value={upcomingAppointments.length} icon={<Calendar className="w-4 h-4" />} />
           </div>
         </>
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Mothers needing follow-up */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-sm font-semibold">Mothers Who Need Attention</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                {isAdmin ? 'Mothers Who Need Attention' : 'Your Patients — Adherence'}
+              </CardTitle>
               <Link to="/dashboard/mothers">
-                <Button variant="ghost" size="sm" className="text-xs gap-1 h-7">View all <ArrowRight className="w-3 h-3" /></Button>
+                <Button variant="ghost" size="sm" className="text-xs gap-1 h-7">
+                  View all <ArrowRight className="w-3 h-3" />
+                </Button>
               </Link>
             </CardHeader>
             <CardContent className="p-0">
@@ -109,42 +164,54 @@ export default function DashboardOverview() {
                 <table className="w-full min-w-max">
                   <thead>
                     <tr className="border-b border-border">
-                      {['Patient', 'Stage', 'Risk', 'Last Check-in', 'Adherence', ''].map(h => (
+                      {['Patient', 'Stage', 'Risk', 'Med Adherence', 'Appt Attendance', 'Overall', ''].map((h) => (
                         <th key={h} className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {loading ? (
-                      <TableSkeleton rows={5} columns={6} showAvatar />
-                    ) : needFollowUp.map(p => (
-                      <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2.5">
-                            <Avatar className="w-7 h-7">
-                              <AvatarFallback className="text-xs bg-secondary text-primary font-semibold">{p.initials}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{p.name}</p>
-                              <p className="text-xs text-muted-foreground">{p.id}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground">
-                          {p.gestationalWeek > 0 ? `Wk ${p.gestationalWeek}` : 'Postpartum'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap"><RiskBadge level={p.riskLevel} /></td>
-                        <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground">{p.lastCheckIn}</td>
-                        <td className="px-4 py-3 whitespace-nowrap"><AdherenceBadge value={p.adherence} /></td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <Link to={`/dashboard/mothers/${p.id}`}>
-                            <Button variant="ghost" size="sm" className="h-7 text-xs">View</Button>
-                          </Link>
+                      <TableSkeleton rows={5} columns={7} showAvatar />
+                    ) : (isAdmin ? needFollowUp : assignedPatients).length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                          {isAdmin
+                            ? 'No mothers flagged for follow-up right now.'
+                            : 'No patients assigned to you yet.'}
                         </td>
                       </tr>
-                    ))}
-                    {!loading && needFollowUp.length === 0 && (
-                      <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No mothers need follow-up right now.</td></tr>
+                    ) : (
+                      (isAdmin ? needFollowUp : assignedPatients).map((p) => (
+                        <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2.5">
+                              <Avatar className="w-7 h-7">
+                                <AvatarFallback className="text-xs bg-secondary text-primary font-semibold">{p.initials}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{p.name}</p>
+                                <p className="text-xs text-muted-foreground">{p.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground">
+                            {p.gestationalWeek > 0 ? `Wk ${p.gestationalWeek}` : 'Postpartum'}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap"><RiskBadge level={p.riskLevel} /></td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <AdherenceBadge value={p.medicationAdherence} />
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap text-xs text-muted-foreground">
+                            {p.appointmentAdherence != null ? `${p.appointmentAdherence}%` : '—'}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap"><AdherenceBadge value={p.adherence} /></td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <Link to={`/dashboard/mothers/${p.id}`}>
+                              <Button variant="ghost" size="sm" className="h-7 text-xs">View</Button>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>
@@ -152,120 +219,222 @@ export default function DashboardOverview() {
             </CardContent>
           </Card>
 
-          {/* Adherence trend */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Adherence Trends — Last 6 Months</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={ANALYTICS_DATA.adherenceTrend}>
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[70, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ border: '1px solid hsl(var(--border))', borderRadius: 6, fontSize: 12 }}
-                    formatter={(v: number, name: string) => [`${v}%`, name === 'medication' ? 'Medication' : 'Appointment']}
-                  />
-                  <Line type="monotone" dataKey="medication" stroke="hsl(173 79% 24%)" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="appointment" stroke="hsl(38 53% 47%)" strokeWidth={2} dot={false} strokeDasharray="4 2" />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="flex gap-5 mt-2">
-                <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-primary" /><span className="text-xs text-muted-foreground">Medication</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-3 h-0.5 bg-accent" /><span className="text-xs text-muted-foreground">Appointment</span></div>
-              </div>
-            </CardContent>
-          </Card>
+          {adherenceChartData.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">
+                  {isAdmin ? 'Adherence by Patient' : 'Your Caseload — Medication Adherence'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={adherenceChartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
+                    <Tooltip
+                      contentStyle={{ border: '1px solid hsl(var(--border))', borderRadius: 6, fontSize: 12 }}
+                      formatter={(v: number, name: string) => [
+                        `${v}%`,
+                        name === 'medication' ? 'Medication' : 'Appointments',
+                      ]}
+                      labelFormatter={(_, payload) =>
+                        payload?.[0]?.payload?.fullName ?? ''
+                      }
+                    />
+                    <Bar dataKey="medication" name="medication" radius={[4, 4, 0, 0]}>
+                      {adherenceChartData.map((entry, i) => (
+                        <Cell
+                          key={i}
+                          fill={entry.medication >= 80 ? TEAL : entry.medication >= 70 ? GOLD : RED}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* Right column */}
         <div className="space-y-6">
-          {/* Alerts */}
           <Card data-tour="alerts-panel">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold">Recent Alerts</CardTitle>
               <Bell className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="space-y-3 px-4 pb-4">
-              {ALERTS.map((a, i) => (
-                <div key={i} className="flex gap-3 items-start">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${a.severity === 'high' ? 'bg-destructive' : a.severity === 'medium' ? 'bg-[hsl(38_92%_50%)]' : 'bg-[hsl(142_63%_35%)]'}`} />
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground">{a.patient}</p>
-                    <p className="text-xs text-muted-foreground text-pretty leading-relaxed mt-0.5">{a.note}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">{a.time}</p>
+              {loading ? (
+                <ListItemsSkeleton count={3} />
+              ) : recentAlerts.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No alerts right now.</p>
+              ) : (
+                recentAlerts.map((a, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${
+                      a.severity === 'high' ? 'bg-destructive' :
+                      a.severity === 'medium' ? 'bg-[hsl(38_92%_50%)]' : 'bg-[hsl(142_63%_35%)]'
+                    }`} />
+                    <div className="min-w-0 flex-1">
+                      {a.patientId ? (
+                        <Link to={`/dashboard/mothers/${a.patientId}`} className="text-xs font-semibold text-foreground hover:text-primary">
+                          {a.patient}
+                        </Link>
+                      ) : (
+                        <p className="text-xs font-semibold text-foreground">{a.patient}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground text-pretty leading-relaxed mt-0.5">{a.note}</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">{a.time}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </CardContent>
           </Card>
 
-          {/* Upcoming appointments */}
           <Card data-tour="upcoming-appointments">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Upcoming Consultations</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                {isAdmin ? 'Upcoming Appointments' : 'Your Upcoming Visits'}
+              </CardTitle>
               <Link to="/dashboard/appointments">
-                <Button variant="ghost" size="sm" className="text-xs h-7 gap-1">All <ArrowRight className="w-3 h-3" /></Button>
+                <Button variant="ghost" size="sm" className="text-xs h-7 gap-1">
+                  All <ArrowRight className="w-3 h-3" />
+                </Button>
               </Link>
             </CardHeader>
             <CardContent className="space-y-3 px-4 pb-4">
               {loading ? (
                 <ListItemsSkeleton count={4} />
-              ) : upcomingAppointments.map(a => (
-                <div key={a.id} className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center shrink-0">
-                    <Calendar className="w-3.5 h-3.5 text-primary" />
+              ) : upcomingAppointments.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No upcoming appointments.</p>
+              ) : (
+                upcomingAppointments.map((a) => (
+                  <div key={a.id} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center shrink-0">
+                      <Calendar className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-foreground truncate">{a.patient}</p>
+                      <p className="text-xs text-muted-foreground truncate">{a.type}</p>
+                      <p className="text-xs text-muted-foreground/60">{a.date} · {a.time}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs shrink-0">{a.location || 'Clinic'}</Badge>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-foreground truncate">{a.patient}</p>
-                    <p className="text-xs text-muted-foreground truncate">{a.type}</p>
-                    <p className="text-xs text-muted-foreground/60">{a.date} · {a.time}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs shrink-0">{a.mode === 'virtual' ? 'Video' : 'In-person'}</Badge>
-                </div>
-              ))}
-              {!loading && upcomingAppointments.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">No upcoming consultations.</p>
+                ))
               )}
             </CardContent>
           </Card>
 
-          {/* Nurse activity */}
-          <Card data-tour="nurse-activity">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Nurse Activity Today</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 px-4 pb-4">
-              {NURSE_ACTIVITY.map(n => (
-                <div key={n.name}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-6 h-6">
-                        <AvatarFallback className="text-xs bg-secondary text-primary font-semibold">{n.initials}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs font-medium text-foreground">{n.name}</span>
+          {isAdmin && teamSnapshot.length > 0 && (
+            <Card data-tour="nurse-activity">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Care Team</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 px-4 pb-4">
+                {teamSnapshot.map((member) => {
+                  const name = String(member.name ?? 'Staff');
+                  const initials = String(member.initials ?? name.slice(0, 2).toUpperCase());
+                  const caseload = Number(member.caseload ?? member.mothers ?? 0);
+                  const responded = Number(member.responded ?? caseload);
+                  return (
+                    <div key={name}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-6 h-6">
+                            <AvatarFallback className="text-xs bg-secondary text-primary font-semibold">{initials}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs font-medium text-foreground">{name}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{String(member.role ?? '')}</span>
+                      </div>
+                      {caseload > 0 && (
+                        <Progress value={Math.min(100, (responded / caseload) * 100)} className="h-1.5" />
+                      )}
                     </div>
-                    <span className="text-xs text-muted-foreground">{n.responded}/{n.mothers} responded</span>
-                  </div>
-                  <Progress value={(n.responded / n.mothers) * 100} className="h-1.5" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
 
-          {/* AI Summary */}
+          {isAdmin && (
+            <Card data-tour="activity-log">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Activity Log</CardTitle>
+                <Activity className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="space-y-3 px-4 pb-4 max-h-72 overflow-y-auto">
+                {activityLoading ? (
+                  <ListItemsSkeleton count={4} />
+                ) : activityLog.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">No activity recorded yet.</p>
+                ) : (
+                  activityLog.map((entry) => (
+                    <div key={entry.id} className="flex gap-3 items-start border-b border-border/50 last:border-0 pb-3 last:pb-0">
+                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center shrink-0">
+                        {entry.category === 'video-call' ? (
+                          <Stethoscope className="w-3.5 h-3.5 text-primary" />
+                        ) : (
+                          <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-foreground">{entry.action}</p>
+                        <p className="text-xs text-muted-foreground text-pretty leading-relaxed mt-0.5">{entry.detail}</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">
+                          {entry.actorName} · {new Date(entry.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {!isAdmin && assignedPatients.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Caseload Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 px-4 pb-4">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Patients on track (≥80%)</span>
+                  <span className="font-medium text-foreground">
+                    {assignedPatients.filter((p) => p.adherence >= 80).length} / {assignedPatients.length}
+                  </span>
+                </div>
+                <Progress
+                  value={
+                    assignedPatients.length
+                      ? (assignedPatients.filter((p) => p.adherence >= 80).length / assignedPatients.length) * 100
+                      : 0
+                  }
+                  className="h-2"
+                />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Average medication adherence across your assigned mothers is {metrics.medicationAdherence}%.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-primary/20 bg-secondary/50">
             <CardHeader className="pb-2 flex flex-row items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <CardTitle className="text-sm font-semibold text-primary">AI Operations Summary</CardTitle>
+              <CardTitle className="text-sm font-semibold text-primary">
+                {isAdmin ? 'Programme Snapshot' : 'Your Practice Snapshot'}
+              </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <p className="text-xs text-muted-foreground text-pretty leading-relaxed mb-3">
-                5 mothers have not been contacted in over 7 days. 9 AI care briefs are ready for clinician review. Kemi Adewale and Sarah Ibrahim are flagged as high priority before tomorrow's appointments.
+                {loading ? 'Loading…' : isAdmin
+                  ? `${metrics.totalMothers} mothers enrolled · ${metrics.highRiskCases} high-risk · ${metrics.missedFollowUps} need follow-up · ${metrics.medicationAdherence}% average medication adherence.`
+                  : `You have ${metrics.totalMothers} assigned patient${metrics.totalMothers !== 1 ? 's' : ''} · ${metrics.todayAppointments} visit${metrics.todayAppointments !== 1 ? 's' : ''} today · ${metrics.medicationAdherence}% medication adherence across your caseload.`}
               </p>
-              <Link to="/dashboard/ai-briefs">
+              <Link to={isAdmin ? '/dashboard/analytics' : '/dashboard/medications'}>
                 <Button size="sm" className="w-full h-8 text-xs gap-1">
-                  Review care briefs <ArrowRight className="w-3 h-3" />
+                  {isAdmin ? 'View analytics' : 'Review medications'} <ArrowRight className="w-3 h-3" />
                 </Button>
               </Link>
             </CardContent>

@@ -5,10 +5,10 @@ export function normalizeUsername(value: string) {
 }
 
 /** In-memory demo accounts when DynamoDB is unreachable or not seeded */
-export function findDemoUserRecord(username: string, role: string, hospitalId: string) {
-  const normalized = normalizeUsername(username);
+export function findDemoUserRecord(email: string, role: string, hospitalId: string) {
+  const normalized = email.trim().toLowerCase();
   const user = DEMO_USERS.find(
-    (u) => u.username === normalized && u.role === role && u.hospitalId === hospitalId,
+    (u) => u.email.toLowerCase() === normalized && u.role === role && u.hospitalId === hospitalId,
   );
   if (!user) return null;
   return { ...user } as Record<string, unknown>;

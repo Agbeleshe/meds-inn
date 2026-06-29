@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { Role } from "@/types/clinical";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePageLoadingRegistration } from "@/contexts/PageLoadingContext";
 import { defaultDashboardPath } from "@/lib/route-access";
 import { ACTIVE_HOSPITAL_ID } from "@/lib/hospitals";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const PRO_ROLES: {
   desc: string;
   icon: React.ReactNode;
   demoName: string;
+  demoEmail: string;
 }[] = [
   {
     id: "admin",
@@ -42,6 +44,7 @@ const PRO_ROLES: {
     desc: "Manage programmes, enrolment, and team assignments.",
     icon: <ShieldCheck className="w-5 h-5" />,
     demoName: "Diana Harrington",
+    demoEmail: "diana.harrington@elara-wsc.com",
   },
   {
     id: "nurse",
@@ -49,13 +52,15 @@ const PRO_ROLES: {
     desc: "Follow up between visits and track adherence.",
     icon: <Stethoscope className="w-5 h-5" />,
     demoName: "Elena Costa",
+    demoEmail: "elena.costa@elara-wsc.com",
   },
   {
     id: "doctor",
     label: "Doctor",
-    desc: "Review patients, video consults, and care plans.",
+    desc: "Review patients, care plans, and clinical notes.",
     icon: <UserRound className="w-5 h-5" />,
     demoName: "Priya Sharma",
+    demoEmail: "priya.sharma@elara-wsc.com",
   },
 ];
 
@@ -92,27 +97,29 @@ export default function LoginPage() {
   const [step, setStep] = useState<Step>("path");
   const [path, setPath] = useState<Path | null>(null);
   const [proRole, setProRole] = useState<ProRole>("admin");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("demo123");
   const [hospitalId, setHospitalId] = useState(ACTIVE_HOSPITAL_ID);
   const [submitting, setSubmitting] = useState(false);
 
+  usePageLoadingRegistration(submitting);
+
   function selectProRole(r: ProRole) {
     setProRole(r);
     const match = PRO_ROLES.find((x) => x.id === r);
-    if (match) setUsername(match.demoName);
+    if (match) setEmail(match.demoEmail);
   }
 
   async function handleSignIn() {
-    if (!username.trim() || !password) {
-      toast.error("Enter your name and password");
+    if (!email.trim() || !password) {
+      toast.error("Enter your email address and password");
       return;
     }
 
     const role: Role = path === "mother" ? "mother" : proRole;
     setSubmitting(true);
     const { error, user: profile } = await signIn({
-      username: username.trim(),
+      email: email.trim(),
       password,
       role,
       hospitalId,
@@ -123,7 +130,7 @@ export default function LoginPage() {
       const msg = error.message || "Sign in failed";
       toast.error(
         msg.includes("Invalid credentials")
-          ? `${msg} — use the pre-filled demo name, role, Elara hospital, password demo123`
+          ? `${msg} — use the pre-filled demo email, role, Elara hospital, password demo123`
           : msg,
       );
       return;
@@ -143,7 +150,7 @@ export default function LoginPage() {
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold mb-2">Sign in to Meds-inn</h1>
                 <p className="text-sm text-muted-foreground">
-                  Choose your role, then sign in with your name and password.
+                  Choose your role, then sign in with your email and password.
                 </p>
               </div>
               <div className="grid gap-4">
@@ -168,7 +175,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => {
                     setPath("mother");
-                    setUsername("Sofia Marchetti");
+                    setEmail("sofia.marchetti@patient.elara-wsc.com");
                     setHospitalId(ACTIVE_HOSPITAL_ID);
                     setStep("credentials");
                   }}
@@ -235,18 +242,19 @@ export default function LoginPage() {
                 <h1 className="text-xl font-bold">Sign in</h1>
                 <p className="text-sm text-muted-foreground mt-1">
                   {path === "mother"
-                    ? "Use your full name as username"
+                    ? "Use your registered email address"
                     : `${PRO_ROLES.find((r) => r.id === proRole)?.label} at your hospital`}
                 </p>
               </div>
               <div className="space-y-4 mb-6">
                 <div>
-                  <Label className="text-sm font-normal mb-1.5 block">Full name (username)</Label>
+                  <Label className="text-sm font-normal mb-1.5 block">Email address</Label>
                   <Input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. Diana Harrington"
-                    autoComplete="username"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. diana.harrington@elara-wsc.com"
+                    autoComplete="email"
+                    type="email"
                   />
                 </div>
                 <div>
@@ -269,7 +277,7 @@ export default function LoginPage() {
                 {!submitting && <ArrowRight className="w-4 h-4" />}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Demo: Diana Harrington / Elena Costa / Priya Sharma / Sofia Marchetti / Yuki Tanaka — password{" "}
+                Demo: diana.harrington@elara-wsc.com / elena.costa@elara-wsc.com / priya.sharma@elara-wsc.com / sofia.marchetti@patient.elara-wsc.com / yuki.tanaka@patient.sunrise-mc.com — password{" "}
                 <code className="text-foreground">demo123</code>
               </p>
             </motion.div>

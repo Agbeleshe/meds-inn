@@ -1,24 +1,48 @@
 import { useMemo } from "react";
-import { PATIENTS } from "@/lib/demo-data";
 import type { Mother } from "@/types/clinical";
-import { fetchMother } from "@/lib/api-client";
+import { fetchMother, patchMother } from "@/lib/api-client";
 import { useApiItemQuery } from "@/hooks/use-api-item";
+import { useAuth } from "@/contexts/AuthContext";
+import { canEditMotherCare } from "@/lib/assignments";
 
 export function useMother(id: string | undefined) {
-  const demoData = useMemo(
-    () => (PATIENTS.find((p) => p.id === id) as Mother | undefined) ?? (PATIENTS[0] as Mother),
-    [id],
-  );
+  const { user } = useAuth();
 
-  return useApiItemQuery<Mother>({
+  const query = useApiItemQuery<Mother>({
     id,
-    demoData: id ? demoData : null,
+    demoData: null,
     fetchItem: fetchMother,
     enabled: Boolean(id),
   });
+
+  const canEdit = Boolean(
+    user &&
+      query.data &&
+      (user.role === "admin" ||
+        (user.role === "mother" && user.motherId === id) ||
+        ((user.role === "nurse" || user.role === "doctor") &&
+          canEditMotherCare(user, query.data))),
+  );
+
+  async function updateProfile(payload: Record<string, unknown>) {
+    if (!id) throw new Error("Missing mother id");
+    const res = await patchMother(id, payload);
+    query.refetch();
+    return res.item as Mother;
+  }
+
+  return { ...query, canEdit: Boolean(canEdit), updateProfile };
 }
 
-/** Current logged-in mother's care profile */
+/** Current logged-in mother's care profile — live API data only */
 export function useMyMotherProfile(motherId: string | undefined) {
-  return useMother(motherId);
+  const result = useMother(motherId);
+  const { user } = useAuth();
+
+  const canEdit = useMemo(
+    () => Boolean(user?.role === "mother" && user.motherId === motherId && result.data),
+    [user, motherId, result.data],
+  );
+
+  return { ...result, canEdit };
 }

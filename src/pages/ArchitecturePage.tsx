@@ -4,12 +4,14 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AsyncButton } from '@/components/common/AsyncButton';
 import { fetchHealth, seedDatabase } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { fadeUp, staggerContainer, viewport } from '@/lib/animations';
 import {
-  Server, Database, Shield, Cloud, Bell, Video, Brain, Monitor,
+  Server, Database, Shield, Cloud, Bell, Brain, Monitor,
   Globe, Layers, ArrowDown, ArrowRight, Users, Code2, Lock, ArrowLeft,
+  FolderOpen, Calendar, Baby,
 } from 'lucide-react';
 
 interface ServiceCard {
@@ -25,9 +27,35 @@ interface ServiceCard {
 const STACK = [
   { label: 'Frontend', value: 'React 18 · TypeScript · Vite · Tailwind · shadcn/ui' },
   { label: 'Hosting', value: 'Vercel (SPA + serverless `/api/*` routes)' },
-  { label: 'Database', value: 'Amazon DynamoDB — single table `meds-inn-db` (PK/SK)' },
-  { label: 'AWS auth', value: 'Vercel OIDC → `@vercel/oidc-aws-credentials-provider`' },
+  { label: 'Database', value: 'Amazon DynamoDB — single table `meds-inn-db` (PK/SK composite keys)' },
+  { label: 'AWS access', value: 'Vercel OIDC → `@vercel/oidc-aws-credentials-provider` (server-side only)' },
+  { label: 'Auth (current)', value: 'Custom session tokens in localStorage · user records in DynamoDB' },
   { label: 'Local dev', value: '`npm run dev` — Vite + API on port 5173 via `scripts/dev.mjs`' },
+];
+
+/** Single-table entity layout — see `api/lib/items.ts` and `api/lib/dynamodb.ts` */
+const DYNAMO_ENTITIES = [
+  { prefix: 'HOSPITAL#', sk: 'METADATA', entity: 'Hospital', notes: 'Organisation profile and settings' },
+  { prefix: 'USER#', sk: 'PROFILE', entity: 'User', notes: 'Admin, nurse, doctor, mother accounts' },
+  { prefix: 'USER_LOOKUP#', sk: 'PROFILE', entity: 'User lookup', notes: 'O(1) login by username + hospital + role' },
+  { prefix: 'MOTHER#', sk: 'PROFILE', entity: 'Mother', notes: 'Patient record, assignments, care stage' },
+  { prefix: 'MOTHER#', sk: 'BABY#PROFILE', entity: 'Baby profile', notes: 'Mother-entered baby info (name, birth date, weights)' },
+  { prefix: 'MOTHER#', sk: 'LAB#… / TIMELINE#… / MEDDOSE#…', entity: 'Mother sub-records', notes: 'Labs, timeline events, medication dose logs' },
+  { prefix: 'APPOINTMENT#', sk: 'METADATA', entity: 'Appointment', notes: 'Specialist-created; past scheduled → missed' },
+  { prefix: 'DOCUMENT#', sk: 'METADATA + CHUNK#NNNN', entity: 'Document', notes: 'Metadata + base64 chunks up to 10 MB per file' },
+  { prefix: 'MEDICATION#', sk: 'METADATA', entity: 'Medication', notes: 'Prescriptions with schedule times and adherence' },
+  { prefix: 'CHAT#', sk: 'METADATA / MSG#…', entity: 'Chat', notes: 'Threads and messages under thread partition' },
+  { prefix: 'CAREPLAN#', sk: 'METADATA', entity: 'Care plan', notes: 'One plan per mother (sections + checklist)' },
+  { prefix: 'TEAM#', sk: 'PROFILE', entity: 'Team member', notes: 'Clinical staff directory per hospital' },
+  { prefix: 'WAITLIST#', sk: 'METADATA', entity: 'Waitlist', notes: 'Hospital signup interest emails' },
+];
+
+const API_ROUTES = [
+  { group: 'Auth & users', routes: 'POST /api/auth/login · POST /api/auth/signup · GET /api/me · POST /api/onboarding/complete' },
+  { group: 'Clinical data', routes: 'GET /api/mothers · GET/PATCH /api/mothers/:id · GET/POST /api/appointments · GET/POST/PATCH /api/medications' },
+  { group: 'Documents & baby', routes: 'GET/POST /api/documents · GET/DELETE /api/documents/:id · GET/PUT /api/baby' },
+  { group: 'Messaging', routes: 'GET/POST /api/messages/threads · GET/POST/PUT/PATCH /api/messages/threads/:id' },
+  { group: 'Care & ops', routes: 'GET/PUT /api/care-plans/:motherId · GET /api/dashboard/metrics · GET /api/health · POST /api/seed' },
 ];
 
 const SERVICES: ServiceCard[] = [
@@ -36,7 +64,7 @@ const SERVICES: ServiceCard[] = [
     icon: Cloud,
     category: 'Hosting & API',
     description: 'Hosts the React SPA and serverless API routes. DynamoDB credentials never reach the browser.',
-    details: ['Edge CDN for static assets', 'Serverless `/api/*` handlers', 'Vercel Storage → DynamoDB'],
+    details: ['Edge CDN for static assets', 'Serverless `/api/*` handlers', 'Vercel Storage → DynamoDB link'],
     status: 'live',
     color: 'bg-secondary border-primary/20',
   },
@@ -44,8 +72,8 @@ const SERVICES: ServiceCard[] = [
     name: 'Amazon DynamoDB',
     icon: Database,
     category: 'Database',
-    description: 'Single-table design for mothers, appointments, medications, messages, documents, and labs.',
-    details: ['PK/SK composite keys', 'Scan + prefix filters (hackathon scale)', 'Seeded via POST /api/seed'],
+    description: 'Single-table design for all clinical data. Documents stored as chunked base64 items (10 MB max per file).',
+    details: ['PK/SK mappers in api/lib/items.ts', 'Role-scoped reads via api/lib/access.ts', 'Scan + prefix filters at hackathon scale'],
     status: 'live',
     color: 'bg-[hsl(207_85%_95%)] border-[hsl(207_85%_60%)]',
   },
@@ -53,28 +81,28 @@ const SERVICES: ServiceCard[] = [
     name: 'React + Vite',
     icon: Code2,
     category: 'Frontend',
-    description: 'Client-side app with typed hooks (`useApiListQuery`) that fetch `/api/*` with demo fallback.',
-    details: ['React Router v6', 'Context for theme & roles', 'DataSourceBadge on live pages'],
+    description: 'Client-side app with typed hooks that fetch `/api/*`. Empty states when no live data (demo fallback off by default).',
+    details: ['useApiListQuery + DataSourceBadge', 'Bearer token in localStorage', 'Role-based nav and RouteGuard'],
     status: 'live',
     color: 'bg-secondary border-primary/20',
   },
   {
-    name: 'Amazon Cognito',
+    name: 'Custom auth',
     icon: Shield,
     category: 'Authentication',
-    description: 'Target auth for production — role-based access for admin, nurse, doctor, and mother.',
-    details: ['JWT sessions', 'Role groups', 'Replaces demo role switcher'],
-    status: 'planned',
-    color: 'bg-[hsl(38_92%_96%)] border-[hsl(38_70%_60%)]',
+    description: 'Session tokens issued by POST /api/auth/login. User records and lookups stored in DynamoDB.',
+    details: ['Roles: admin, nurse, doctor, mother', 'Assignment checks on every API route', 'Amazon Cognito planned for production'],
+    status: 'live',
+    color: 'bg-[hsl(142_63%_95%)] border-[hsl(142_63%_50%)]',
   },
   {
-    name: 'Amazon S3',
-    icon: Server,
-    category: 'File Storage',
-    description: 'Presigned uploads for medical documents; metadata stored in DynamoDB.',
-    details: ['Signed URL access', 'Server-side encryption', 'Documents page integration'],
-    status: 'planned',
-    color: 'bg-[hsl(38_92%_96%)] border-[hsl(38_70%_60%)]',
+    name: 'Document storage',
+    icon: FolderOpen,
+    category: 'Files',
+    description: 'Specialists upload to assigned mothers; files chunked in DynamoDB. Mothers download only; specialists can delete.',
+    details: ['10 MB per file limit', 'CHUNK#0000… under DOCUMENT# partition', 'PDF, images, DOCX via base64 POST'],
+    status: 'live',
+    color: 'bg-[hsl(142_63%_95%)] border-[hsl(142_63%_50%)]',
   },
   {
     name: 'Amazon Bedrock',
@@ -84,15 +112,6 @@ const SERVICES: ServiceCard[] = [
     details: ['InvokeModel API', 'Brief stored in DynamoDB', 'Mock UI today'],
     status: 'planned',
     color: 'bg-secondary border-primary/20',
-  },
-  {
-    name: 'Amazon Chime SDK',
-    icon: Video,
-    category: 'Video',
-    description: 'HIPAA-eligible video consultations between clinicians and mothers.',
-    details: ['WebRTC sessions', 'Linked to appointments', 'Mock UI today'],
-    status: 'planned',
-    color: 'bg-[hsl(142_63%_95%)] border-[hsl(142_63%_50%)]',
   },
   {
     name: 'Amazon SNS / SES',
@@ -122,43 +141,44 @@ const FLOW_ROWS = [
   },
   {
     label: 'Browser',
-    nodes: ['React SPA — fetch `/api/*` only (never talks to AWS directly)'],
+    nodes: ['React SPA — Authorization: Bearer token on fetch `/api/*` (never AWS credentials)'],
     icon: Globe,
     span: true,
   },
   {
     label: 'Vercel serverless',
-    nodes: ['`/api/mothers` · `/api/appointments` · `/api/seed` · `/api/health`'],
+    nodes: ['api/lib/auth.ts → getUserRecordById · api/lib/access.ts → canAccessMother · @aws-sdk/lib-dynamodb'],
     icon: Layers,
     span: true,
   },
   {
-    label: 'AWS',
-    nodes: ['DynamoDB (live)', 'OIDC credentials', 'Cognito (planned)', 'S3 · Bedrock · Chime · SNS/SES'],
-    icon: Server,
+    label: 'DynamoDB',
+    nodes: ['meds-inn-db — single table, entityType + PK/SK per record'],
+    icon: Database,
+    span: true,
   },
 ];
 
 const BUILD_STEPS = [
   {
     step: '01',
-    title: 'Frontend scaffold',
-    body: 'React + Vite + TypeScript with Tailwind and shadcn/ui. All dashboard pages share layouts, hooks, and demo data while AWS routes are wired page by page.',
+    title: 'Frontend + Vercel API',
+    body: 'React + Vite dashboard with serverless `/api/*` handlers. The browser only talks to same-origin API routes — AWS SDK runs exclusively on the server.',
   },
   {
     step: '02',
-    title: 'Vercel + DynamoDB',
-    body: 'Linked Vercel project, created `meds-inn-db` in Vercel Storage, pulled OIDC env vars into `.env.local`. API routes use `@aws-sdk/lib-dynamodb` server-side only.',
+    title: 'DynamoDB single-table model',
+    body: 'All entities share one table (`meds-inn-db`). Partition keys encode entity type (MOTHER#, APPOINTMENT#, DOCUMENT#…). Sort keys distinguish profiles, metadata, and child records (MSG#, CHUNK#, LAB#).',
   },
   {
     step: '03',
-    title: 'Single-table data model',
-    body: 'PK/SK mappers in `api/lib/items.ts` — MOTHER#, APPOINTMENT#, TEAM#, MEDICATION#, MESSAGE#, DOCUMENT#, and LAB# under mother partitions.',
+    title: 'Role-scoped access',
+    body: 'Every route validates Bearer token → loads USER# record → checks hospitalId and assignment via canAccessMother. Mothers see only their own patientId; nurses/doctors see assigned mothers only.',
   },
   {
     step: '04',
-    title: 'Shared fetch pattern',
-    body: '`useApiListQuery` + `DataSourceBadge` on each page. Demo fallback when API is offline; switch to Live · DynamoDB when seed data exists.',
+    title: 'Live features wired to DynamoDB',
+    body: 'Appointments (create + auto-missed), documents (chunked upload/download), baby profiles, medications, chat threads, care plans, and dashboard metrics all persist through PutCommand / ScanCommand / GetCommand.',
   },
 ];
 
@@ -169,7 +189,6 @@ export default function ArchitecturePage() {
     table: string | null;
     hasAwsRole: boolean;
   } | null>(null);
-  const [seeding, setSeeding] = useState(false);
 
   const loadHealth = useCallback(() => {
     fetchHealth()
@@ -182,7 +201,6 @@ export default function ArchitecturePage() {
   }, [loadHealth]);
 
   const handleSeed = async () => {
-    setSeeding(true);
     try {
       const { seeded } = await seedDatabase();
       const total = Object.values(seeded).reduce((a, b) => a + b, 0);
@@ -192,14 +210,11 @@ export default function ArchitecturePage() {
       loadHealth();
     } catch {
       toast.error('Seed failed — run `npm run dev` and connect DynamoDB in Vercel Storage');
-    } finally {
-      setSeeding(false);
     }
   };
 
   return (
     <main className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 space-y-12">
-      {/* Hero */}
       <motion.div variants={fadeUp} initial="hidden" animate="visible">
         <Link
           to="/"
@@ -213,13 +228,12 @@ export default function ArchitecturePage() {
           Architecture
         </h1>
         <p className="text-base text-muted-foreground max-w-2xl text-pretty leading-relaxed">
-          Meds-inn is a React + Vite app deployed on Vercel with serverless API routes backed by
-          Amazon DynamoDB. The browser never holds AWS credentials — all data flows through{' '}
-          <code className="text-foreground text-sm">/api/*</code> handlers using Vercel OIDC.
+          Meds-inn is a React + Vite app on Vercel with serverless API routes backed by a single
+          Amazon DynamoDB table. All clinical data — mothers, appointments, documents, medications,
+          chat, and baby profiles — is stored as PK/SK items. The browser never holds AWS credentials.
         </p>
       </motion.div>
 
-      {/* Stack summary */}
       <motion.div
         className="grid sm:grid-cols-2 gap-3"
         variants={staggerContainer}
@@ -239,7 +253,49 @@ export default function ArchitecturePage() {
         ))}
       </motion.div>
 
-      {/* Build steps */}
+      <section>
+        <h2 className="text-xl font-bold text-foreground mb-2">DynamoDB data model</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          One table, many entity types. Keys are defined in{' '}
+          <code className="text-foreground text-xs">api/lib/dynamodb.ts</code> and mapped in{' '}
+          <code className="text-foreground text-xs">api/lib/items.ts</code>.
+        </p>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+                <th className="text-left font-semibold text-muted-foreground px-4 py-2.5">Partition key (PK)</th>
+                <th className="text-left font-semibold text-muted-foreground px-4 py-2.5">Sort key (SK)</th>
+                <th className="text-left font-semibold text-muted-foreground px-4 py-2.5">Entity</th>
+                <th className="text-left font-semibold text-muted-foreground px-4 py-2.5 hidden md:table-cell">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DYNAMO_ENTITIES.map((row) => (
+                <tr key={`${row.prefix}-${row.sk}`} className="border-b border-border last:border-0 hover:bg-muted/20">
+                  <td className="px-4 py-2.5 font-mono text-foreground">{row.prefix}</td>
+                  <td className="px-4 py-2.5 font-mono text-muted-foreground">{row.sk}</td>
+                  <td className="px-4 py-2.5 font-medium text-foreground">{row.entity}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground hidden md:table-cell">{row.notes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-bold text-foreground mb-4">API routes</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          {API_ROUTES.map((row) => (
+            <div key={row.group} className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-semibold text-primary mb-1.5">{row.group}</p>
+              <p className="text-xs text-muted-foreground font-mono leading-relaxed">{row.routes}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section>
         <h2 className="text-xl font-bold text-foreground mb-6">Build process</h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -253,7 +309,6 @@ export default function ArchitecturePage() {
         </div>
       </section>
 
-      {/* Flow diagram */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">Request flow</CardTitle>
@@ -308,23 +363,38 @@ export default function ArchitecturePage() {
         </CardContent>
       </Card>
 
-      {/* Security note */}
+      <div className="grid sm:grid-cols-3 gap-3">
+        {[
+          { icon: Calendar, label: 'Appointments', text: 'Specialists POST new visits; GET auto-marks past scheduled as missed.' },
+          { icon: FolderOpen, label: 'Documents', text: 'Chunked base64 in DOCUMENT#… CHUNK# items; 10 MB max per upload.' },
+          { icon: Baby, label: 'Baby profile', text: 'MOTHER#{id} + SK BABY#PROFILE — filled by mother, read by care team.' },
+        ].map(({ icon: Icon, label, text }) => (
+          <div key={label} className="rounded-xl border border-border bg-card p-4 flex gap-3">
+            <Icon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="flex gap-4 rounded-xl border border-primary/20 bg-secondary/50 p-5">
         <Lock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-semibold text-foreground mb-1">Security boundary</p>
           <p className="text-xs text-muted-foreground leading-relaxed text-pretty">
-            DynamoDB credentials stay on the server. The React app calls{' '}
-            <code className="text-foreground">fetch('/api/mothers')</code> — same origin in dev and prod.
+            DynamoDB credentials stay on the server via Vercel OIDC. The React app sends{' '}
+            <code className="text-foreground">Authorization: Bearer &lt;token&gt;</code> to{' '}
+            <code className="text-foreground">/api/*</code> — same origin in dev and prod.
             Never use <code className="text-foreground">VITE_</code> prefix for AWS secrets.
           </p>
         </div>
       </div>
 
-      {/* Services */}
       <section>
         <h2 className="text-xl font-bold text-foreground mb-2">Services &amp; status</h2>
-        <p className="text-sm text-muted-foreground mb-6">What is wired today vs planned for the hackathon roadmap.</p>
+        <p className="text-sm text-muted-foreground mb-6">What is wired to DynamoDB today vs planned for production.</p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {SERVICES.map((svc) => {
             const Icon = svc.icon;
@@ -361,7 +431,6 @@ export default function ArchitecturePage() {
         </div>
       </section>
 
-      {/* Live connection */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">Try it — DynamoDB connection</CardTitle>
@@ -370,9 +439,9 @@ export default function ArchitecturePage() {
           <p className="text-xs text-muted-foreground leading-relaxed">
             Connect DynamoDB in Vercel Dashboard → Storage, run{' '}
             <code className="text-foreground">npm run vercel:env</code>, then{' '}
-            <code className="text-foreground">npm run dev</code>. Seed demo data and open{' '}
+            <code className="text-foreground">npm run dev</code>. Optionally seed baseline records, then open{' '}
             <Link to="/login" className="text-primary hover:underline">the dashboard</Link>
-            {' '}→ Mothers to see the <strong>Live · DynamoDB</strong> badge.
+            {' '}and look for the <strong>Live · DynamoDB</strong> badge on data pages.
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={health?.hasAwsRole ? 'default' : 'outline'} className="text-xs font-normal">
@@ -383,9 +452,9 @@ export default function ArchitecturePage() {
             <Button size="sm" variant="outline" onClick={loadHealth}>
               Check health
             </Button>
-            <Button size="sm" variant="outline" onClick={handleSeed} disabled={seeding}>
-              {seeding ? 'Seeding…' : 'Seed demo data'}
-            </Button>
+            <AsyncButton size="sm" variant="outline" loadingText="Seeding…" onClick={handleSeed}>
+              Seed baseline data
+            </AsyncButton>
           </div>
         </CardContent>
       </Card>

@@ -2,7 +2,7 @@
  * SplashScreen — v2
  *
  * Shows while image assets are being preloaded.
- * Displays a live progress bar + loaded/total counter.
+ * Displays a live progress bar + percent counter (e.g. 42% / 100%).
  * Transitions: fade-in → loading → "Ready!" flash → fade-out → onDone().
  *
  * Props
@@ -29,7 +29,7 @@ const MIN_DISPLAY_MS = 1_400;
 export function SplashScreen({ onDone, progress, loaded, total }: SplashScreenProps) {
   const [phase, setPhase] = useState<'in' | 'loading' | 'ready' | 'out'>('in');
   const startedAt = useRef(Date.now());
-  const doneRef = useRef(false);
+  const finishedRef = useRef(false);
 
   // Fade in completes at ~500ms → switch to loading phase
   useEffect(() => {
@@ -39,16 +39,24 @@ export function SplashScreen({ onDone, progress, loaded, total }: SplashScreenPr
 
   // When progress hits 100 → wait for minimum display time, then "ready" flash → fade out
   useEffect(() => {
-    if (progress < 100 || doneRef.current) return;
-    doneRef.current = true;
+    if (progress < 100) return;
 
     const elapsed = Date.now() - startedAt.current;
     const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
 
     const t1 = setTimeout(() => setPhase('ready'), remaining);
     const t2 = setTimeout(() => setPhase('out'), remaining + 700);
-    const t3 = setTimeout(() => onDone(), remaining + 700 + 600);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const t3 = setTimeout(() => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      onDone();
+    }, remaining + 700 + 600);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, [progress, onDone]);
 
   const isOut = phase === 'out';
@@ -195,7 +203,7 @@ export function SplashScreen({ onDone, progress, loaded, total }: SplashScreenPr
                 }}
               >
                 {total > 0
-                  ? `Loading images… ${loaded} / ${total}`
+                  ? `Loading images… ${Math.min(progress, 100)}% / 100%`
                   : 'Preparing…'}
               </span>
             </>

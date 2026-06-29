@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePageLoadingRegistration } from "@/contexts/PageLoadingContext";
 import { ACTIVE_HOSPITAL_ID } from "@/lib/hospitals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,14 @@ import { HospitalSelect } from "@/components/auth/HospitalSelect";
 import { Logo } from "@/components/common/Logo";
 import { BackToHomeLink } from "@/components/auth/BackToHomeLink";
 import { joinHospitalWaitlist } from "@/lib/api-client";
+import { LANDING_IMAGES } from "@/lib/site-images";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowRight,
   ArrowLeft,
@@ -32,6 +41,15 @@ const slideIn: Variants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
   exit: { opacity: 0, x: -40, transition: { duration: 0.2 } },
 };
+
+function getFlagEmoji(countryCode: string) {
+  if (!countryCode || countryCode.length !== 2) return "";
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
 
 function AuthHeader({ onBack }: { onBack?: () => void }) {
   return (
@@ -60,6 +78,8 @@ export default function SignUpPage() {
   const [step, setStep] = useState<Step>("path");
   const [submitting, setSubmitting] = useState(false);
 
+  usePageLoadingRegistration(submitting);
+
   // Hospital waitlist
   const [waitlistEmail, setWaitlistEmail] = useState("");
 
@@ -74,6 +94,56 @@ export default function SignUpPage() {
   const [notes, setNotes] = useState("");
   const [password, setPassword] = useState("");
   const [hospitalId, setHospitalId] = useState(ACTIVE_HOSPITAL_ID);
+
+  // Country Codes for Phone Dropdown
+  const [countryCode, setCountryCode] = useState("US");
+  const [countries, setCountries] = useState([
+    { name: "United States", cca2: "US", dialCode: "+1", flag: "🇺🇸" },
+    { name: "United Kingdom", cca2: "GB", dialCode: "+44", flag: "🇬🇧" },
+    { name: "Nigeria", cca2: "NG", dialCode: "+234", flag: "🇳🇬" },
+    { name: "Canada", cca2: "CA", dialCode: "+1", flag: "🇨🇦" },
+    { name: "Australia", cca2: "AU", dialCode: "+61", flag: "🇦🇺" },
+    { name: "Brazil", cca2: "BR", dialCode: "+55", flag: "🇧🇷" },
+    { name: "India", cca2: "IN", dialCode: "+91", flag: "🇮🇳" },
+  ]);
+
+  useEffect(() => {
+    fetch("https://restcountries.com/v3.1/all?fields=name,cca2,idd")
+      .then((res) => res.json())
+      .then((data: any[]) => {
+        if (!Array.isArray(data)) return;
+        const formatted = data
+          .map((item) => {
+            const root = item.idd?.root ?? "";
+            const suffix = item.idd?.suffixes?.[0] ?? "";
+            const dialCode = root + (item.idd?.suffixes?.length === 1 ? suffix : "");
+            return {
+              name: item.name?.common ?? "",
+              cca2: item.cca2 ?? "",
+              dialCode,
+              flag: getFlagEmoji(item.cca2 ?? ""),
+            };
+          })
+          .filter((c) => c.dialCode && c.name)
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (formatted.length > 0) {
+          // Prepend some common ones for easy access
+          const common = [
+            { name: "United States", cca2: "US", dialCode: "+1", flag: "🇺🇸" },
+            { name: "United Kingdom", cca2: "GB", dialCode: "+44", flag: "🇬🇧" },
+            { name: "Nigeria", cca2: "NG", dialCode: "+234", flag: "🇳🇬" },
+          ];
+          const filteredFormatted = formatted.filter(
+            (f) => !common.some((c) => c.cca2 === f.cca2)
+          );
+          setCountries([...common, ...filteredFormatted]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch country codes", err);
+      });
+  }, []);
 
   async function handleWaitlist() {
     if (!waitlistEmail.trim()) {
@@ -98,10 +168,22 @@ export default function SignUpPage() {
       toast.error("First name, last name, and password are required");
       return;
     }
+    if (!email.trim()) {
+      toast.error("Email address is required");
+      return;
+    }
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!gmailRegex.test(email.trim())) {
+      toast.error("A valid @gmail.com address is required to register");
+      return;
+    }
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
+
+    const selectedDialCode = countries.find((c) => c.cca2 === countryCode)?.dialCode ?? countryCode;
+    const fullPhone = phone.trim() ? `${selectedDialCode} ${phone.trim()}` : undefined;
 
     setSubmitting(true);
     const { error } = await signUpMother({
@@ -112,8 +194,8 @@ export default function SignUpPage() {
       careStage,
       gestationalWeeks: careStage === "pregnant" ? Number(gestationalWeeks) : undefined,
       babyWeeks: careStage === "postpartum" ? Number(babyWeeks) : undefined,
-      phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
+      phone: fullPhone,
+      email: email.trim(),
       notes: notes.trim() || undefined,
     });
     setSubmitting(false);
@@ -145,9 +227,14 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setStep("hospital-waitlist")}
-                  className="w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-primary/50 transition-all"
+                  className="relative w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-primary/50 transition-all overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-20"
+                    style={{ backgroundImage: `url(${LANDING_IMAGES.signupDoctor})` }}
+                    aria-hidden
+                  />
+                  <div className="relative flex items-center gap-4">
                     <Building2 className="w-6 h-6 text-primary shrink-0" />
                     <div>
                       <p className="font-semibold">Medical institution</p>
@@ -158,9 +245,14 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setStep("mother-form")}
-                  className="w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-[hsl(142_63%_35%)]/50 transition-all"
+                  className="relative w-full text-left rounded-2xl border-2 border-border bg-card p-6 hover:border-[hsl(142_63%_35%)]/50 transition-all overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-20"
+                    style={{ backgroundImage: `url(${LANDING_IMAGES.signupMother})` }}
+                    aria-hidden
+                  />
+                  <div className="relative flex items-center gap-4">
                     <Baby className="w-6 h-6 text-[hsl(142_63%_35%)] shrink-0" />
                     <div>
                       <p className="font-semibold">Expecting or new mother</p>
@@ -272,15 +364,36 @@ export default function SignUpPage() {
                 )}
                 <div>
                   <Label className="text-sm font-normal mb-1.5 block">Phone (optional)</Label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 …" />
+                  <div className="flex gap-2">
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="w-[130px] shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {countries.map((c) => (
+                          <SelectItem key={c.cca2} value={c.cca2}>
+                            <span className="mr-1.5">{c.flag}</span>
+                            <span className="text-xs">{c.dialCode}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="e.g. 555 0100"
+                      className="flex-1"
+                      type="tel"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-normal mb-1.5 block">Email (optional)</Label>
+                  <Label className="text-sm font-normal mb-1.5 block">Email *</Label>
                   <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="For appointment reminders"
+                    placeholder="e.g. Sofia.marchetti@gmail.com"
                   />
                 </div>
                 <div>
@@ -301,7 +414,7 @@ export default function SignUpPage() {
                     autoComplete="new-password"
                   />
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    Your full name will be your username when signing in.
+                    Your email address will be your username when signing in.
                   </p>
                 </div>
               </div>

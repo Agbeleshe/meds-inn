@@ -5,6 +5,7 @@ import { fetchMothers } from "@/lib/api-client";
 import { useApiListQuery } from "@/hooks/use-api-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { ACTIVE_HOSPITAL_ID } from "@/lib/hospitals";
+import { filterMothersForRole } from "@/lib/assignments";
 
 export type { Mother, RiskLevel, PatientStatus };
 
@@ -18,8 +19,15 @@ export function useMothers() {
 
   const demoData = useMemo(() => {
     const all = withHospitalId(PATIENTS);
-    return all.filter((m) => m.hospitalId === hospitalId);
-  }, [hospitalId]);
+    const scoped = all.filter((m) => m.hospitalId === hospitalId);
+    if (!user) return scoped;
+    return filterMothersForRole(scoped, {
+      id: user.id,
+      role: user.role,
+      motherId: user.motherId,
+      hospitalId,
+    });
+  }, [hospitalId, user]);
 
   const fetchItems = useCallback(
     () => fetchMothers(hospitalId),

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle2, ShieldCheck, Stethoscope, Users2, CalendarClock, Sparkles, Video, Bell, BarChart3, FolderOpen, Database, Cloud, Zap, Mail, Quote } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ShieldCheck, Stethoscope, Users2, CalendarClock, Sparkles, MessageSquare, Bell, BarChart3, FolderOpen, Database, Cloud, Zap, Mail, Quote } from 'lucide-react';
 import { PublicNav } from '@/components/layouts/PublicNav';
 import { Logo } from '@/components/common/Logo';
 import { HexagonalGalleryHero } from '@/components/landing/HexagonalGalleryHero';
@@ -20,7 +20,7 @@ const PROBLEMS = [
 const SOLUTION_POINTS = [
   { icon: Bell, text: 'Clinician-managed medication reminders and care checklists sent directly to mothers.' },
   { icon: CalendarClock, text: 'Appointment scheduling, reminders, and missed-visit follow-up — all in one place.' },
-  { icon: Video, text: 'Video consultations that bring the clinic to the mother, between visits.' },
+  { icon: MessageSquare, text: 'Secure messaging between mothers and their assigned care team, stored in each patient record.' },
   { icon: Sparkles, text: 'AI care briefs that surface patient risk cues and prepare clinicians for each visit.' },
   { icon: Stethoscope, text: 'Seamless transition from pregnancy care into baby\'s first-year follow-up.' },
   { icon: BarChart3, text: 'Hospital dashboards that show care continuity scores, adherence trends, and team performance.' },
@@ -30,9 +30,8 @@ const FEATURES = [
   { icon: Users2, title: 'Patient Directory', desc: 'Every enrolled mother, searchable and filterable by risk, stage, and follow-up status.' },
   { icon: Stethoscope, title: 'Care Plans', desc: 'Structured care plans created by clinicians, updated each trimester, reviewed by the care team.' },
   { icon: Bell, title: 'Medication Reminders', desc: 'Clinician-assigned reminders that reach mothers via the app. No automatic prescriptions.' },
-  { icon: Video, title: 'Video Consultations', desc: 'Scheduled video calls with care notes, session agendas, and follow-up documentation built in.' },
+  { icon: FolderOpen, title: 'Document Centre', desc: 'Lab results, scans, and care notes uploaded by specialists — mothers download securely.' },
   { icon: Sparkles, title: 'AI Care Briefs', desc: 'Summaries that consolidate patient activity, adherence, and risk cues for clinician review.' },
-  { icon: FolderOpen, title: 'Document Centre', desc: 'Lab results, scans, consent forms, and care notes — organised and accessible to the care team.' },
 ];
 
 const WORKFLOW_STEPS = [
@@ -56,7 +55,7 @@ const WORKFLOW_STEPS = [
     step: '03',
     title: 'Connect',
     role: 'Doctor',
-    desc: 'Doctors conduct video consultations and receive AI-assisted summaries before each session.',
+    desc: 'Doctors review care plans, approve prescriptions, and receive AI-assisted summaries before each visit.',
     color: 'bg-[hsl(38_53%_47%)]',
     img: LANDING_IMAGES.workflow.connect,
   },
@@ -118,17 +117,15 @@ const TESTIMONIALS = [
 const AWS_SERVICES = [
   { name: 'Vercel', note: 'Frontend deployment', icon: Cloud },
   { name: 'Amazon Cognito', note: 'Role-based auth', icon: ShieldCheck },
-  { name: 'Amazon DynamoDB', note: 'Patient records', icon: Database },
-  { name: 'Amazon S3', note: 'Documents & scans', icon: FolderOpen },
+  { name: 'Amazon DynamoDB', note: 'All clinical data & documents', icon: Database },
   { name: 'AWS Lambda', note: 'Reminder workflows', icon: Zap },
   { name: 'Amazon Bedrock', note: 'AI care briefs', icon: Sparkles },
-  { name: 'Amazon Chime SDK', note: 'Video consultations', icon: Video },
   { name: 'Amazon SNS / SES', note: 'SMS & email alerts', icon: Mail },
 ];
 
 const PRICING_TIERS = [
   { name: 'Starter', price: '$199', period: '/month', patients: 'Up to 50 mothers', features: ['Patient directory', 'Appointment scheduling', 'Medication reminders', 'Basic analytics'], cta: 'Start free trial' },
-  { name: 'Clinical', price: '$499', period: '/month', patients: 'Up to 200 mothers', features: ['Everything in Starter', 'Video consultations', 'AI care briefs', 'Team management', 'Document centre'], cta: 'Request demo', highlight: true },
+  { name: 'Clinical', price: '$499', period: '/month', patients: 'Up to 200 mothers', features: ['Everything in Starter', 'AI care briefs', 'Team management', 'Document centre', 'Secure messaging'], cta: 'Request demo', highlight: true },
   { name: 'Hospital', price: 'Custom', period: '', patients: 'Unlimited', features: ['Everything in Clinical', 'Multi-department support', 'Custom integrations', 'Dedicated onboarding', 'SLA guarantee'], cta: 'Contact us' },
 ];
 
@@ -205,11 +202,12 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <PublicNav showLandingSections onScrollTo={scrollTo} />
 
-      {/* ── Hero — Hexagonal Gallery ── */}
-      <HexagonalGalleryHero />
+      <div className="overflow-x-hidden flex-1">
+        {/* ── Hero — Hexagonal Gallery ── */}
+        <HexagonalGalleryHero />
 
       {/* Stats bar */}
       <motion.div
@@ -258,8 +256,13 @@ export default function LandingPage() {
       </section>
 
       {/* Solution */}
-      <section id="solution" className="bg-card border-y border-border">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-20">
+      <section id="solution" className="relative bg-card border-y border-border overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.06] pointer-events-none"
+          style={{ backgroundImage: `url(${LANDING_IMAGES.featuresBg})` }}
+          aria-hidden
+        />
+        <div className="relative max-w-6xl mx-auto px-4 md:px-8 py-20">
           <motion.div className="max-w-xl mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewport}>
             <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 block">How Meds-inn helps</span>
             <h2 className="text-3xl font-bold text-foreground text-balance mb-4">
@@ -349,8 +352,13 @@ export default function LandingPage() {
       </section>
 
       {/* Mother journey */}
-      <section className="bg-sidebar">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-20">
+      <section className="relative bg-sidebar overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.08] pointer-events-none"
+          style={{ backgroundImage: `url(${LANDING_IMAGES.journeyBg})` }}
+          aria-hidden
+        />
+        <div className="relative max-w-6xl mx-auto px-4 md:px-8 py-20">
           <motion.div className="max-w-xl mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewport}>
             <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 block">Mother journey</span>
             <h2 className="text-3xl font-bold text-sidebar-foreground text-balance">
@@ -410,8 +418,13 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="bg-card border-y border-border">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-20">
+      <section id="features" className="relative bg-card border-y border-border overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-right opacity-[0.05] pointer-events-none"
+          style={{ backgroundImage: `url(${LANDING_IMAGES.heroBg})` }}
+          aria-hidden
+        />
+        <div className="relative max-w-6xl mx-auto px-4 md:px-8 py-20">
           <motion.div className="max-w-xl mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={viewport}>
             <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 block">Platform features</span>
             <h2 className="text-3xl font-bold text-foreground text-balance">
@@ -522,7 +535,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/login">
               <Button size="lg" className="gap-2 w-full sm:w-auto">
-                Access demo <ArrowRight className="w-4 h-4" />
+                sign in now <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
@@ -542,6 +555,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      </div>
 
       {/* Guidance bot — appears after user scrolls */}
       <GuidanceBot />

@@ -6,6 +6,7 @@ import { NAV_ITEMS, MOTHER_NAV_ITEMS } from '@/lib/nav-items';
 import type { NavItem } from '@/lib/nav-items';
 import { useApp } from '@/contexts/AppContext';
 import { useTour } from '@/contexts/TourContext';
+import { useNavBadges } from '@/hooks/use-nav-badges';
 import { HOSPITAL } from '@/lib/demo-data';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
@@ -49,6 +50,17 @@ function NavInfoBtn({ item }: { item: NavItem }) {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { role } = useApp();
+  const { unreadMessages, upcomingAppointments, escalationCount, babyProfileIncomplete, videoRequestCount, waitingListCount } = useNavBadges();
+
+  const badgeFor = (key: string) => {
+    if (key === 'messages' && unreadMessages > 0) return unreadMessages;
+    if (key === 'appointments' && upcomingAppointments) return 1;
+    if (key === 'escalated' && escalationCount > 0) return escalationCount;
+    if (key === 'baby-care' && babyProfileIncomplete) return 1;
+    if (key === 'video-calls' && videoRequestCount > 0) return videoRequestCount;
+    if (key === 'waiting-list' && waitingListCount > 0) return waitingListCount;
+    return 0;
+  };
 
   const visibleItems = role === 'mother'
     ? MOTHER_NAV_ITEMS
@@ -82,10 +94,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           {visibleItems.map(item => {
             const Icon = item.icon;
             const active = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
+            const badge = badgeFor(item.key);
+            const badgeLabel = badge > 9 ? '9+' : String(badge);
             return collapsed ? (
               <Tooltip key={item.key}>
                 <TooltipTrigger asChild>
-                  <motion.div variants={fadeUp}>
+                  <motion.div variants={fadeUp} className="relative">
                     <Link
                       data-tour={`desk-nav-${item.key}`}
                       to={item.path}
@@ -98,6 +112,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                     >
                       <Icon className="w-4 h-4" />
                     </Link>
+                    {badge > 0 && (
+                      <span className="absolute top-0.5 right-1 min-w-[14px] h-3.5 px-0.5 rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground flex items-center justify-center">
+                        {badgeLabel}
+                      </span>
+                    )}
                   </motion.div>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>
@@ -108,7 +127,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   data-tour={`desk-nav-${item.key}`}
                   to={item.path}
                   className={cn(
-                    'group flex items-center gap-3 px-3 h-9 rounded-md text-sm transition-colors',
+                    'group flex items-center gap-3 px-3 h-9 rounded-md text-sm transition-colors relative',
                     active
                       ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                       : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -116,6 +135,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="truncate flex-1 min-w-0">{item.label}</span>
+                  {badge > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center shrink-0">
+                      {badgeLabel}
+                    </span>
+                  )}
                   <NavInfoBtn item={item} />
                 </Link>
               </motion.div>

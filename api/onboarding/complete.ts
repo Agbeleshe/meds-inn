@@ -23,21 +23,12 @@ interface OnboardingBody {
   careStage?: "pregnant" | "postpartum";
 }
 
-/** POST /api/onboarding/complete — mother fills clinical profile after signup */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
-
-  const token = getBearerToken(req);
-  if (!token) return json(res, 401, { error: "Missing authorization token" });
-
-  const user = await getUserRecordById(token);
-  if (!user || String(user.role) !== "mother") {
-    return json(res, 403, { error: "Only mother accounts can complete onboarding" });
-  }
-
-  const motherId = String(user.motherId ?? "");
-  if (!motherId) return json(res, 400, { error: "No care profile linked to this account" });
-
+async function handleOnboarding(
+  req: VercelRequest,
+  res: VercelResponse,
+  user: Record<string, unknown>,
+  motherId: string,
+) {
   const body = await readBody<OnboardingBody>(req);
   const age = Number(body.age);
   const phone = body.phone?.trim();
@@ -112,4 +103,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error("Onboarding complete failed:", error);
     return json(res, 500, { error: "Could not save onboarding profile" });
   }
+}
+
+/** POST /api/onboarding/complete — mother fills clinical profile after signup */
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
+
+  const token = getBearerToken(req);
+  if (!token) return json(res, 401, { error: "Missing authorization token" });
+
+  let user = await getUserRecordById(token);
+
+  if (!user) {
+    // Newly created accounts may not be immediately queryable — retry once after a short wait
+    await new Promise((r) => setTimeout(r, 1500));
+    user = await getUserRecordById(token);
+  }
+
+  if (!user) {
+    console.error(`[ONBOARDING COMPLETE 403] User not found in database or demo for token: ${token}`);
+    return json(res, 403, { error: "User account not found. Please try again in a moment." });
+  }
+
+  if (String(user.role) !== "mother") {
+    console.error(`[ONBOARDING COMPLETE 403] Forbidden: role is ${user.role} (expected "mother") for token: ${token}`);
+    return json(res, 403, {
+      error: `Only mother accounts can complete onboarding (role: ${user.role})`,
+    });
+  }
+
+  const motherId = String(user.motherId ?? "");
+  if (!motherId) {
+    console.error(`[ONBOARDING COMPLETE 400] Missing motherId for token: ${token}`);
+    return json(res, 400, { error: "No care profile linked to this account" });
+  }
+
+  return handleOnboarding(req, res, user, motherId);
 }

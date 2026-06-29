@@ -1,249 +1,471 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useBabyProfile } from '@/hooks/use-baby';
+import { useBabyCare } from '@/hooks/use-baby-care';
+import { useCareBrief } from '@/hooks/use-care-brief';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMothers } from '@/hooks/use-mothers';
+import { isAssignedToMother } from '@/lib/assignments';
+import { CareBriefPanel } from '@/components/clinical/CareBriefPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Baby, Syringe, TrendingUp, Heart, MessageSquare,
-  CheckCircle2, Clock, AlertTriangle, Milk, ChevronRight
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { VACCINATION_SCHEDULE, GROWTH_MILESTONES } from '@/lib/demo-data';
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Baby, Loader2, Save, CheckCircle2, Pill, Activity, ListChecks, Sparkles } from 'lucide-react';
+import { BLOOD_GROUPS, BABY_GENDERS } from '@/lib/blood-groups';
 
-type Tab = 'profile' | 'vaccinations' | 'milestones' | 'feeding' | 'postpartum' | 'journey';
+const EMPTY_FORM = {
+  babyName: '',
+  birthDate: '',
+  gender: '',
+  birthWeight: '',
+  currentWeight: '',
+  birthLength: '',
+  deliveryType: '',
+  feedingMethod: '',
+  bloodGroup: '',
+  apgarScore: '',
+  notes: '',
+};
 
-const NURSE_NOTES = [
-  { date: '2026-06-25', nurse: 'Nurse Linda James', note: 'Baby Bello weighed at 6-week check. Weight 4.1kg — good gain since birth. Breastfeeding established. Mother reports fatigue; advised rest and support network.' },
-  { date: '2026-05-20', nurse: 'Nurse Esther Okonkwo', note: 'First home visit at 2 weeks. Baby feeding well, umbilical cord healed. Amina recovering. Lochia resolved. No signs of postpartum depression at this time.' },
-];
-
-const FIRST_YEAR_JOURNEY = [
-  { age: 'Birth', title: 'Delivery & first check', done: true, notes: 'APGAR score 9. Birth weight 3.2kg. Breastfeeding initiated.' },
-  { age: '1 week', title: 'First home visit', done: true, notes: 'Nurse home visit. Weight check and feeding assessment.' },
-  { age: '2 weeks', title: 'Follow-up visit', done: true, notes: 'Healing well. Weight 3.4kg. Continuing breast milk.' },
-  { age: '6 weeks', title: 'Postpartum review', done: true, notes: 'Mother recovering well. Baby 4.1kg. First vaccinations given.' },
-  { age: '2 months', title: '2-month immunisations', done: false, notes: 'DTaP, Hib, IPV, PCV, Rotavirus due.' },
-  { age: '4 months', title: '4-month immunisations', done: false, notes: 'Second dose of 2-month vaccines due.' },
-  { age: '6 months', title: '6-month check', done: false, notes: 'Growth review, introduce solid foods guidance.' },
-  { age: '9 months', title: '9-month review', done: false, notes: 'Developmental milestone review.' },
-  { age: '12 months', title: 'First birthday check', done: false, notes: 'Full first-year wellness review. Final immunisations.' },
-];
+function motherStatusLabel(m: { careStage?: string; status?: string }) {
+  if (m.careStage === 'postpartum' || m.status === 'postpartum' || m.status === 'delivered') {
+    return 'Delivered';
+  }
+  return 'Pregnant';
+}
 
 export default function BabyCarePage() {
-  const [tab, setTab] = useState<Tab>('profile');
+  const { user } = useAuth();
+  const { mothers, loading: mothersLoading } = useMothers();
+
+  const selectableMothers = useMemo(() => {
+    if (user?.role === 'mother') return [];
+    if (user?.role === 'admin') return mothers;
+    return mothers.filter((m) => isAssignedToMother(user!, m));
+  }, [mothers, user]);
+
+  const sortedMothers = useMemo(
+    () =>
+      [...selectableMothers].sort((a, b) => {
+        const aDelivered = motherStatusLabel(a) === 'Delivered' ? 0 : 1;
+        const bDelivered = motherStatusLabel(b) === 'Delivered' ? 0 : 1;
+        return aDelivered - bDelivered || a.name.localeCompare(b.name);
+      }),
+    [selectableMothers],
+  );
+
+  const [selectedMotherId, setSelectedMotherId] = useState('');
+  const effectiveMotherId =
+    user?.role === 'mother' ? user.motherId : selectedMotherId || undefined;
+
+  useEffect(() => {
+    if (user?.role === 'mother' || selectedMotherId) return;
+    if (sortedMothers.length === 1) {
+      setSelectedMotherId(sortedMothers[0].id);
+    }
+  }, [user?.role, selectedMotherId, sortedMothers]);
+
+  const { profile, loading, error, saving, save, canEdit, refetch } =
+    useBabyProfile(effectiveMotherId);
+  const {
+    symptoms,
+    medications,
+    checklist,
+    loading: careLoading,
+    saving: careSaving,
+    logSymptom,
+    addMedication,
+    toggleChecklist,
+    refetch: refetchCare,
+  } = useBabyCare(effectiveMotherId);
+
+  const { brief, canEdit: canEditBrief, loading: briefLoading, busy: briefBusy, regenerate, markReviewed } =
+    useCareBrief(user?.role !== 'mother' ? effectiveMotherId : undefined);
+
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editing, setEditing] = useState(false);
+  const [tab, setTab] = useState('profile');
+  const [symptomForm, setSymptomForm] = useState({ symptom: '', severity: 'mild', notes: '' });
+  const [medForm, setMedForm] = useState({ name: '', dosage: '', frequency: '', instructions: '' });
+
+  React.useEffect(() => {
+    if (profile) {
+      setForm({
+        babyName: profile.babyName ?? '',
+        birthDate: profile.birthDate ?? '',
+        gender: profile.gender ?? '',
+        birthWeight: profile.birthWeight ?? '',
+        currentWeight: profile.currentWeight ?? '',
+        birthLength: profile.birthLength ?? '',
+        deliveryType: profile.deliveryType ?? '',
+        feedingMethod: profile.feedingMethod ?? '',
+        bloodGroup: profile.bloodGroup ?? '',
+        apgarScore: profile.apgarScore ?? '',
+        notes: profile.notes ?? '',
+      });
+    } else if (canEdit) {
+      setForm(EMPTY_FORM);
+      setEditing(true);
+    }
+  }, [profile, canEdit]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.babyName.trim() || !form.birthDate) {
+      toast.error('Baby name and birth date are required.');
+      return;
+    }
+    try {
+      await save(form);
+      toast.success('Baby profile saved');
+      setEditing(false);
+      refetchCare();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
+    }
+  }
+
+  const showForm = canEdit && (editing || !profile);
+  const isClinical = user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'doctor';
 
   return (
     <div className="space-y-6">
       <div data-tour="baby-care-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Baby Care</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">From pregnancy to first vaccinations, all in one care journey.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {canEdit
+              ? 'Daily baby care tasks, symptoms, medications, and profile.'
+              : 'Baby care for mothers who have delivered.'}
+          </p>
         </div>
+        {user?.role !== 'mother' && (
+          <Select value={selectedMotherId} onValueChange={setSelectedMotherId}>
+            <SelectTrigger className="w-64 h-9">
+              <SelectValue placeholder={mothersLoading ? 'Loading mothers…' : 'Select assigned mother'} />
+            </SelectTrigger>
+            <SelectContent>
+              {sortedMothers.length === 0 ? (
+                <SelectItem value="__none" disabled>
+                  {mothersLoading ? 'Loading…' : 'No assigned mothers'}
+                </SelectItem>
+              ) : (
+                sortedMothers.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name} · {motherStatusLabel(m)}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
-      {/* Baby header card */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-start gap-5">
-          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center shrink-0">
-            <Baby className="w-7 h-7 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h2 className="text-lg font-bold text-foreground">Baby Bello</h2>
-              <Badge variant="outline" className="text-xs">Age: 10 weeks 4 days</Badge>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-2 text-sm">
-              {[
-                { label: 'Mother', value: 'Amina Bello (MED-ELR-24018)' },
-                { label: 'Birth Date', value: 'October 14, 2026' },
-                { label: 'Birth Weight', value: '3.2 kg' },
-                { label: 'Current Weight', value: '4.1 kg' },
-                { label: 'Delivery', value: 'Vaginal delivery' },
-                { label: 'Paediatrician', value: 'Dr. Ifeoma Nnaji' },
-                { label: 'Assigned Nurse', value: 'Nurse Linda James' },
-                { label: 'Next Visit', value: 'Dec 15, 2026 (2-month check)' },
-              ].map(item => (
-                <div key={item.label}>
-                  <p className="text-xs text-muted-foreground">{item.label}</p>
-                  <p className="text-sm font-medium text-foreground">{item.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error.message}
+          <Button variant="link" className="h-auto p-0 ml-2 text-destructive" onClick={() => refetch()}>
+            Retry
+          </Button>
         </div>
-      </div>
+      )}
 
-      {/* Tabs */}
-      <Tabs value={tab} onValueChange={v => setTab(v as Tab)}>
-        <TabsList className="h-9 flex-wrap">
-          {[
-            { key: 'profile', label: 'Profile' },
-            { key: 'vaccinations', label: 'Vaccinations' },
-            { key: 'milestones', label: 'Milestones' },
-            { key: 'feeding', label: 'Feeding' },
-            { key: 'postpartum', label: 'Postpartum' },
-            { key: 'journey', label: 'First Year' },
-          ].map(t => (
-            <TabsTrigger key={t.key} value={t.key} className="text-xs px-3">{t.label}</TabsTrigger>
-          ))}
-        </TabsList>
+      {loading && !profile ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+          <Loader2 className="w-5 h-5 animate-spin" /> Loading…
+        </div>
+      ) : !effectiveMotherId && user?.role !== 'mother' ? (
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            {sortedMothers.length === 0
+              ? 'No mothers are assigned to you yet. Assign patients from the Mothers page.'
+              : 'Select an assigned mother above to view baby care.'}
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="h-9 flex-wrap">
+            <TabsTrigger value="profile" className="text-xs gap-1"><Baby className="w-3 h-3" />Profile</TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs gap-1"><ListChecks className="w-3 h-3" />Daily tasks</TabsTrigger>
+            <TabsTrigger value="symptoms" className="text-xs gap-1"><Activity className="w-3 h-3" />Symptoms</TabsTrigger>
+            <TabsTrigger value="medications" className="text-xs gap-1"><Pill className="w-3 h-3" />Medications</TabsTrigger>
+            {isClinical && (
+              <TabsTrigger value="brief" className="text-xs gap-1"><Sparkles className="w-3 h-3" />AI brief</TabsTrigger>
+            )}
+          </TabsList>
 
-        {/* Profile */}
-        <TabsContent value="profile" className="mt-4">
-          <div data-tour="baby-care-records" className="grid md:grid-cols-3 gap-4">
-            {[
-              { label: 'Birth Weight', value: '3.2 kg', note: 'Normal range: 2.5–4.0 kg', ok: true },
-              { label: 'Current Weight', value: '4.1 kg', note: '+900g since birth · Good progression', ok: true },
-              { label: 'Length at Birth', value: '51 cm', note: 'Normal range: 48–52 cm', ok: true },
-              { label: 'APGAR Score', value: '9/10', note: 'Recorded at 5 minutes', ok: true },
-              { label: 'Feeding Method', value: 'Breastfeeding', note: 'Established at 2 weeks', ok: true },
-              { label: 'Blood Group', value: 'O+ (confirmed)', note: 'Matches mother', ok: true },
-            ].map(m => (
-              <div key={m.label} className="bg-card border border-border rounded-lg p-4 flex flex-col h-full">
-                <p className="text-xs text-muted-foreground">{m.label}</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{m.value}</p>
-                <p className="text-xs text-muted-foreground mt-1 text-pretty">{m.note}</p>
-                {m.ok && <CheckCircle2 className="w-4 h-4 text-[hsl(142_63%_35%)] mt-auto pt-2" />}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Vaccinations */}
-        <TabsContent value="vaccinations" className="mt-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Vaccination Schedule</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-max">
-                  <thead>
-                    <tr className="border-b border-border">
-                      {['Age', 'Vaccine', 'Due Date', 'Given', 'Status'].map(h => (
-                        <th key={h} className="text-left text-xs font-medium text-muted-foreground px-3 py-2.5 whitespace-nowrap">{h}</th>
+          <TabsContent value="profile" className="mt-4">
+            {showForm ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Baby className="w-4 h-4" /> {profile ? 'Update baby profile' : "Add your baby's information"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="babyName">Baby&apos;s name *</Label>
+                      <Input id="babyName" value={form.babyName} onChange={(e) => setForm((f) => ({ ...f, babyName: e.target.value }))} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDate">Birth date *</Label>
+                      <Input id="birthDate" type="date" value={form.birthDate} onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))} required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select value={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
+                        <SelectTrigger id="gender"><SelectValue placeholder="Select gender" /></SelectTrigger>
+                        <SelectContent>
+                          {BABY_GENDERS.map((g) => (
+                            <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bloodGroup">Blood group</Label>
+                      <Select value={form.bloodGroup} onValueChange={(v) => setForm((f) => ({ ...f, bloodGroup: v }))}>
+                        <SelectTrigger id="bloodGroup"><SelectValue placeholder="Select blood group" /></SelectTrigger>
+                        <SelectContent>
+                          {BLOOD_GROUPS.map((bg) => (
+                            <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthWeight">Birth weight</Label>
+                      <Input id="birthWeight" placeholder="e.g. 3.2 kg" value={form.birthWeight} onChange={(e) => setForm((f) => ({ ...f, birthWeight: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="currentWeight">Current weight</Label>
+                      <Input id="currentWeight" placeholder="e.g. 4.1 kg" value={form.currentWeight} onChange={(e) => setForm((f) => ({ ...f, currentWeight: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="deliveryType">Delivery type</Label>
+                      <Select value={form.deliveryType} onValueChange={(v) => setForm((f) => ({ ...f, deliveryType: v }))}>
+                        <SelectTrigger id="deliveryType"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Vaginal delivery">Vaginal delivery</SelectItem>
+                          <SelectItem value="C-section">C-section</SelectItem>
+                          <SelectItem value="Assisted delivery">Assisted delivery</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="feedingMethod">Feeding method</Label>
+                      <Select value={form.feedingMethod} onValueChange={(v) => setForm((f) => ({ ...f, feedingMethod: v }))}>
+                        <SelectTrigger id="feedingMethod"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Breastfeeding">Breastfeeding</SelectItem>
+                          <SelectItem value="Formula">Formula</SelectItem>
+                          <SelectItem value="Mixed">Mixed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="notes">Additional notes</Label>
+                      <Textarea id="notes" rows={3} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2 flex gap-2">
+                      <Button type="submit" disabled={saving} className="gap-1.5">
+                        <Save className="w-4 h-4" />
+                        {saving ? 'Saving…' : 'Save profile'}
+                      </Button>
+                      {profile && (
+                        <Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+                      )}
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            ) : profile ? (
+              <div className="bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <Baby className="w-7 h-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <h2 className="text-lg font-bold text-foreground">{profile.babyName}</h2>
+                      {canEdit && (
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setEditing(true)}>Edit</Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-3 text-sm">
+                      {[
+                        { label: 'Birth Date', value: profile.birthDate },
+                        { label: 'Gender', value: BABY_GENDERS.find((g) => g.value === profile.gender)?.label ?? (profile.gender || '—') },
+                        { label: 'Blood Group', value: profile.bloodGroup || '—' },
+                        { label: 'Feeding', value: profile.feedingMethod || '—' },
+                        { label: 'Birth Weight', value: profile.birthWeight || '—' },
+                        { label: 'Current Weight', value: profile.currentWeight || '—' },
+                      ].map((item) => (
+                        <div key={item.label}>
+                          <p className="text-xs text-muted-foreground">{item.label}</p>
+                          <p className="text-sm font-medium text-foreground">{item.value}</p>
+                        </div>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {VACCINATION_SCHEDULE.map((v, i) => (
-                      <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/20">
-                        <td className="px-3 py-3 text-xs font-medium text-foreground whitespace-nowrap">{v.ageLabel}</td>
-                        <td className="px-3 py-3 text-xs text-foreground whitespace-nowrap">{v.vaccine}</td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">{v.dueDate}</td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">{v.givenDate ?? '—'}</td>
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <span className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                            v.status === 'given' ? 'bg-[hsl(142_63%_90%)] text-[hsl(142_63%_25%)]' :
-                            v.status === 'due' ? 'bg-[hsl(38_92%_90%)] text-[hsl(38_70%_28%)]' :
-                            'bg-muted text-muted-foreground'
-                          )}>
-                            {v.status === 'given' ? 'Given' : v.status === 'due' ? 'Due soon' : 'Upcoming'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Milestones */}
-        <TabsContent value="milestones" className="mt-4">
-          <div className="grid md:grid-cols-2 gap-3">
-            {GROWTH_MILESTONES.map((m, i) => (
-              <div key={i} className={cn('rounded-lg border p-4', m.achieved ? 'border-[hsl(142_63%_70%)] bg-[hsl(142_63%_97%)]' : 'border-border bg-card')}>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.ageLabel}</p>
-                  {m.achieved
-                    ? <CheckCircle2 className="w-4 h-4 text-[hsl(142_63%_35%)] shrink-0" />
-                    : <Clock className="w-4 h-4 text-muted-foreground shrink-0" />}
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-foreground text-pretty">{m.milestone}</p>
-                {m.achieved && m.achievedDate && (
-                  <p className="text-xs text-muted-foreground mt-1">Achieved {m.achievedDate}</p>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                  No baby profile on file yet.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Today&apos;s baby care checklist</CardTitle>
+                <p className="text-xs text-muted-foreground">Feeding, medications, tummy time, and daily routines — resets each day.</p>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {careLoading ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Loading…</p>
+                ) : checklist.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">No tasks loaded.</p>
+                ) : (
+                  checklist.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={!canEdit || careSaving}
+                      onClick={() => canEdit && toggleChecklist(item.id)}
+                      className="flex items-center gap-3 w-full text-left disabled:opacity-50 py-1"
+                    >
+                      <CheckCircle2 className={`w-4 h-4 shrink-0 ${item.done ? 'text-[hsl(142_63%_35%)]' : 'text-border'}`} />
+                      <span className={`text-sm ${item.done ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{item.text}</span>
+                    </button>
+                  ))
                 )}
-                {!m.achieved && <p className="text-xs text-muted-foreground mt-1">Upcoming — expected ~{m.ageLabel}</p>}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Feeding */}
-        <TabsContent value="feeding" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Feeding Notes</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { date: '2026-06-25', note: 'Breastfeeding every 2.5–3 hours. Baby latching well. Mother reports mild soreness — advised positioning technique.', by: 'Nurse Linda James' },
-                { date: '2026-06-05', note: 'Exclusive breastfeeding established at 3 weeks. Baby gaining weight appropriately. No supplemental formula needed.', by: 'Nurse Linda James' },
-                { date: '2026-11-01', note: 'Introduction of pureed foods discussed for 6-month check. Breastfeeding to continue alongside solids.', by: 'Dr. Ifeoma Nnaji' },
-              ].map((note, i) => (
-                <div key={i} className="border-l-2 border-[hsl(207_85%_45%)] pl-4">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-semibold text-foreground">{note.by}</span>
-                    <span className="text-xs text-muted-foreground">{note.date}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground text-pretty leading-relaxed">{note.note}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Postpartum */}
-        <TabsContent value="postpartum" className="mt-4 space-y-4">
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Postpartum Mother Check-ins</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {NURSE_NOTES.map((n, i) => (
-                <div key={i} className="border-l-2 border-primary pl-4">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-semibold text-foreground">{n.nurse}</span>
-                    <span className="text-xs text-muted-foreground">{n.date}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground text-pretty leading-relaxed">{n.note}</p>
-                </div>
-              ))}
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => toast.success('Note added')}>
-                <MessageSquare className="w-3.5 h-3.5" /> Add check-in note
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* First year journey */}
-        <TabsContent value="journey" className="mt-4">
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">First Year Care Journey</CardTitle></CardHeader>
-            <CardContent className="space-y-0">
-              {FIRST_YEAR_JOURNEY.map((e, i) => (
-                <div key={i} className="flex gap-4 pb-5 last:pb-0">
-                  <div className="flex flex-col items-center">
-                    <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', e.done ? 'bg-primary' : 'bg-muted border-2 border-border')}>
-                      {e.done ? <CheckCircle2 className="w-4 h-4 text-primary-foreground" /> : <Clock className="w-4 h-4 text-muted-foreground" />}
+          <TabsContent value="symptoms" className="mt-4 space-y-4">
+            {canEdit && (
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Log baby symptom</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <Input placeholder="Symptom (e.g. fever, rash)" value={symptomForm.symptom} onChange={(e) => setSymptomForm((f) => ({ ...f, symptom: e.target.value }))} />
+                  <Select value={symptomForm.severity} onValueChange={(v) => setSymptomForm((f) => ({ ...f, severity: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mild">Mild</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="severe">Severe</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Textarea placeholder="Notes" rows={2} value={symptomForm.notes} onChange={(e) => setSymptomForm((f) => ({ ...f, notes: e.target.value }))} />
+                  <Button
+                    size="sm"
+                    disabled={careSaving || !symptomForm.symptom.trim()}
+                    onClick={async () => {
+                      await logSymptom(symptomForm);
+                      setSymptomForm({ symptom: '', severity: 'mild', notes: '' });
+                      toast.success('Symptom logged');
+                    }}
+                  >
+                    Save symptom
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Symptom history</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {symptoms.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">No symptoms logged yet.</p>
+                ) : (
+                  symptoms.map((s) => (
+                    <div key={s.id} className="py-2 border-b border-border last:border-0">
+                      <p className="text-sm font-medium">{s.symptom} <span className="text-xs text-muted-foreground">({s.severity})</span></p>
+                      <p className="text-xs text-muted-foreground">{s.date}{s.notes ? ` · ${s.notes}` : ''}</p>
                     </div>
-                    {i < FIRST_YEAR_JOURNEY.length - 1 && <div className="w-px flex-1 bg-border mt-2" />}
-                  </div>
-                  <div className="pb-2">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{e.age}</span>
-                      {e.done && <Badge variant="outline" className="text-xs h-4 py-0 text-[hsl(142_63%_30%)] border-[hsl(142_63%_50%)]">Done</Badge>}
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="medications" className="mt-4 space-y-4">
+            {isClinical && (
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Prescribe baby medication</CardTitle></CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-3">
+                  <Input placeholder="Name (e.g. Vitamin D drops)" value={medForm.name} onChange={(e) => setMedForm((f) => ({ ...f, name: e.target.value }))} />
+                  <Input placeholder="Dosage" value={medForm.dosage} onChange={(e) => setMedForm((f) => ({ ...f, dosage: e.target.value }))} />
+                  <Input placeholder="Frequency" value={medForm.frequency} onChange={(e) => setMedForm((f) => ({ ...f, frequency: e.target.value }))} />
+                  <Input placeholder="Instructions" value={medForm.instructions} onChange={(e) => setMedForm((f) => ({ ...f, instructions: e.target.value }))} />
+                  <Button
+                    size="sm"
+                    className="md:col-span-2 w-fit"
+                    disabled={careSaving || !medForm.name.trim()}
+                    onClick={async () => {
+                      await addMedication(medForm);
+                      setMedForm({ name: '', dosage: '', frequency: '', instructions: '' });
+                      toast.success('Baby medication added');
+                    }}
+                  >
+                    Add medication
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Baby medications</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {medications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">No baby medications prescribed yet.</p>
+                ) : (
+                  medications.map((m) => (
+                    <div key={m.id} className="py-2 border-b border-border last:border-0">
+                      <p className="text-sm font-medium">{m.name} · {m.dosage}</p>
+                      <p className="text-xs text-muted-foreground">{m.frequency}{m.instructions ? ` · ${m.instructions}` : ''}</p>
                     </div>
-                    <p className="text-sm font-medium text-foreground">{e.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 text-pretty">{e.notes}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {isClinical && (
+            <TabsContent value="brief" className="mt-4">
+              <CareBriefPanel
+                brief={brief}
+                loading={briefLoading}
+                busy={briefBusy}
+                canEdit={canEditBrief}
+                onRegenerate={regenerate}
+                onMarkReviewed={markReviewed}
+                patientId={effectiveMotherId}
+              />
+            </TabsContent>
+          )}
+        </Tabs>
+      )}
+
+      {user?.role !== 'mother' && effectiveMotherId && !profile && (
+        <Button size="sm" variant="outline" className="h-8 text-xs" asChild>
+          <Link to={`/dashboard/messages?patientId=${encodeURIComponent(effectiveMotherId)}`}>
+            Prompt patient via Messages
+          </Link>
+        </Button>
+      )}
     </div>
   );
 }

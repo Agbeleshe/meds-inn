@@ -129,8 +129,7 @@ export default function CookiePolicyPage() {
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
               <li><strong className="text-foreground">Vercel</strong> — edge network and analytics. Vercel's own privacy policy applies to data collected via their infrastructure.</li>
-              <li><strong className="text-foreground">Amazon Web Services</strong> — our cloud platform. AWS WAF sets a security token to protect against automated threats.</li>
-              <li><strong className="text-foreground">Amazon Chime SDK</strong> — video consultation functionality. Session cookies are used only during active video calls.</li>
+              <li><strong className="text-foreground">Amazon Web Services</strong> — our cloud platform (DynamoDB, OIDC credentials). AWS WAF may set a security token to protect against automated threats.</li>
             </ul>
             <p>We do not embed third-party advertising networks or social media trackers on the platform.</p>
           </Section>

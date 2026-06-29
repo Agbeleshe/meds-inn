@@ -8,6 +8,13 @@ import {
   stripKeys,
 } from "./dynamodb";
 import { motherListFilter, toMotherItem } from "./items";
+import { PATIENTS } from "../../src/lib/demo-data";
+import { withTimeout } from "./fast-fallback";
+import {
+  getMotherSession,
+  getAllMotherSessions,
+  saveMotherSession,
+} from "./mother-session-store";
 
 export async function getMotherRecordById(motherId: string) {
   const result = await dynamodb.send(
@@ -67,6 +74,28 @@ export function normalizeMotherRecord(raw: Record<string, unknown>) {
     onboardingComplete: raw.onboardingComplete,
     careStage: raw.careStage,
     babyWeeks: raw.babyWeeks,
+    assignedNurseUserId: raw.assignedNurseUserId ? String(raw.assignedNurseUserId) : null,
+    assignedDoctorUserId: raw.assignedDoctorUserId ? String(raw.assignedDoctorUserId) : null,
+    specialistRequestType: raw.specialistRequestType ? String(raw.specialistRequestType) : null,
+    specialistRequestNote: raw.specialistRequestNote ? String(raw.specialistRequestNote) : null,
+    specialistRequestAt: raw.specialistRequestAt ? String(raw.specialistRequestAt) : null,
+    specialistRequestStatus: raw.specialistRequestStatus ? String(raw.specialistRequestStatus) : null,
+    escalationNote: raw.escalationNote ? String(raw.escalationNote) : null,
+    escalationSeverity: raw.escalationSeverity ? String(raw.escalationSeverity) : null,
+    escalationAt: raw.escalationAt ? String(raw.escalationAt) : null,
+    escalationBy: raw.escalationBy ? String(raw.escalationBy) : null,
+    escalationByUserId: raw.escalationByUserId ? String(raw.escalationByUserId) : null,
+    escalationStatus: raw.escalationStatus ? String(raw.escalationStatus) : null,
+    escalationTargets: Array.isArray(raw.escalationTargets)
+      ? (raw.escalationTargets as string[]).filter((t) =>
+          ["doctor", "nurse", "admin"].includes(t),
+        ) as ("doctor" | "nurse" | "admin")[]
+      : undefined,
+    videoCallRequestStatus: raw.videoCallRequestStatus
+      ? (String(raw.videoCallRequestStatus) as "pending" | "scheduled")
+      : null,
+    videoCallRequestNote: raw.videoCallRequestNote ? String(raw.videoCallRequestNote) : null,
+    videoCallRequestAt: raw.videoCallRequestAt ? String(raw.videoCallRequestAt) : null,
   };
 }
 
@@ -95,4 +124,122 @@ export async function listMotherRecords(hospitalId?: string) {
   } while (lastKey);
 
   return mothers;
+}
+
+function demoMotherList(hospitalId?: string) {
+  return PATIENTS.map((p) =>
+    normalizeMotherRecord({ ...p, hospitalId: hospitalId ?? "ELR" }),
+  ).filter((m) => !hospitalId || m.hospitalId === hospitalId);
+}
+
+/** Resolved mothers with 2.5s cap — avoids blocking on slow DynamoDB scans. */
+export async function listMotherRecordsFast(hospitalId?: string) {
+  const demo = demoMotherList(hospitalId);
+  const items = await withTimeout(
+    listMotherRecordsResolved(hospitalId).catch(() => demo),
+    2500,
+    demo,
+  );
+  return items.length > 0 ? items : demo;
+}
+
+export function getDemoMotherById(motherId: string) {
+  const demo = PATIENTS.find((p) => p.id === motherId);
+  if (!demo) return null;
+  return normalizeMotherRecord({ ...demo, hospitalId: "ELR" });
+}
+
+function backfillMotherFromDemo(normalized: ReturnType<typeof normalizeMotherRecord>) {
+  const demo = getDemoMotherById(normalized.id);
+  if (!demo) return normalized;
+  return normalizeMotherRecord({
+    ...demo,
+    ...normalized,
+    assignedNurseUserId:
+      normalized.assignedNurseUserId ?? demo.assignedNurseUserId ?? null,
+    assignedDoctorUserId:
+      normalized.assignedDoctorUserId ?? demo.assignedDoctorUserId ?? null,
+    nurse:
+      normalized.nurse === "To be assigned" && demo.nurse !== "To be assigned"
+        ? demo.nurse
+        : normalized.nurse,
+    doctor:
+      normalized.doctor === "To be assigned" && demo.doctor !== "To be assigned"
+        ? demo.doctor
+        : normalized.doctor,
+  });
+}
+
+function mergeMotherWithSession(base: Record<string, unknown>) {
+  const session = getMotherSession(String(base.id));
+  if (!session) return backfillMotherFromDemo(normalizeMotherRecord(base));
+  return backfillMotherFromDemo(normalizeMotherRecord({ ...base, ...session }));
+}
+
+/** DB → demo fallback → session overrides (single source of truth for API reads). */
+export async function getMotherRecordResolved(motherId: string) {
+  let record: Record<string, unknown> | null = null;
+
+  try {
+    record = await getMotherRecordById(motherId);
+  } catch (error) {
+    console.warn("DynamoDB getMotherRecordById failed:", error);
+  }
+
+  if (!record) {
+    const demo = getDemoMotherById(motherId);
+    record = demo ? (demo as unknown as Record<string, unknown>) : null;
+  }
+
+  const sessionOnly = getMotherSession(motherId);
+  if (record) return mergeMotherWithSession(record);
+  if (sessionOnly) return backfillMotherFromDemo(normalizeMotherRecord(sessionOnly));
+  return null;
+}
+
+/** List mothers with demo + session merge when DB is empty or unavailable. */
+export async function listMotherRecordsResolved(hospitalId?: string) {
+  const byId = new Map<string, ReturnType<typeof normalizeMotherRecord>>();
+
+  try {
+    const fromDb = await listMotherRecords(hospitalId);
+    for (const m of fromDb) byId.set(m.id, m);
+  } catch (error) {
+    console.warn("DynamoDB listMotherRecords failed:", error);
+  }
+
+  if (byId.size === 0) {
+    for (const p of PATIENTS) {
+      const m = normalizeMotherRecord({ ...p, hospitalId: "ELR" });
+      if (!hospitalId || m.hospitalId === hospitalId) byId.set(m.id, m);
+    }
+  }
+
+  for (const [id, session] of getAllMotherSessions()) {
+    const base = byId.get(id) ?? getDemoMotherById(id);
+    if (base) {
+      byId.set(id, mergeMotherWithSession({ ...base, ...session }));
+    } else if (session.id) {
+      byId.set(id, normalizeMotherRecord(session));
+    }
+  }
+
+  for (const [id, m] of byId) {
+    byId.set(id, backfillMotherFromDemo(m));
+  }
+
+  return Array.from(byId.values());
+}
+
+/** Persist to DynamoDB when possible; always update session store. */
+export async function putMotherRecordResolved(record: Record<string, unknown>) {
+  const normalized = normalizeMotherRecord(record);
+  saveMotherSession(normalized as unknown as Record<string, unknown>);
+  try {
+    await putMotherRecord(normalized as unknown as Record<string, unknown>);
+    return true;
+  } catch (error) {
+    console.warn("DynamoDB putMotherRecord failed:", error);
+    return false;
+  }
 }

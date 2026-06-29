@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
               <li>Enable hospitals and clinicians to manage patient care plans, reminders, appointments, and follow-ups.</li>
               <li>Generate AI-assisted care briefs to support clinical decision-making (all AI outputs require clinician review).</li>
               <li>Send appointment reminders, medication alerts, and care notifications to enrolled mothers.</li>
-              <li>Facilitate secure video consultations between patients and care team members.</li>
+              <li>Facilitate secure messaging between patients and care team members.</li>
               <li>Analyse aggregate usage patterns to improve care workflows and platform performance.</li>
               <li>Comply with applicable legal, regulatory, and contractual obligations.</li>
             </ul>

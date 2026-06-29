@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { USE_DEMO_FALLBACK, type DataSource } from "@/hooks/use-api-query";
+import { USE_DEMO_FALLBACK, type DataSource, useContentAwarePageLoading } from "@/hooks/use-api-query";
 
 export interface UseApiItemQueryResult<T> {
   data: T | null;
@@ -64,6 +64,8 @@ export function useApiItemQuery<T>({
       cancelled = true;
     };
   }, [id, enabled, fetchItem, demoData, tick]);
+
+  useContentAwarePageLoading(loading, data !== null);
 
   return { data, source, loading, error, refetch };
 }

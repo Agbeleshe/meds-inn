@@ -33,6 +33,7 @@ export const ENTITY_PREFIX = {
   team: "TEAM#",
   medication: "MEDICATION#",
   message: "MESSAGE#",
+  chat: "CHAT#",
   document: "DOCUMENT#",
   carePlan: "CAREPLAN#",
   careBrief: "CAREBRIEF#",

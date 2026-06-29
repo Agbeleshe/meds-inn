@@ -1,33 +1,52 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { PATIENTS } from "../src/lib/demo-data";
-import { listMotherRecords, normalizeMotherRecord } from "./lib/mothers";
+import { filterMothersForRole } from "../src/lib/assignments";
+import { getBearerToken, getUserRecordById } from "./lib/auth";
+import { listMotherRecordsFast } from "./lib/mothers";
 import { json, methodNotAllowed } from "./lib/handler";
 
-function demoMothers(hospitalId?: string) {
-  return PATIENTS.map((m) =>
-    normalizeMotherRecord({ ...m, hospitalId: hospitalId ?? "ELR" }),
-  ).filter((m) => !hospitalId || m.hospitalId === hospitalId);
+function userRefFromRecord(user: Record<string, unknown>, hospitalId: string) {
+  return {
+    id: String(user.id),
+    role: user.role as "admin" | "nurse" | "doctor" | "mother",
+    motherId: user.motherId as string | undefined,
+    name: user.name as string | undefined,
+    hospitalId,
+  };
 }
 
 /** GET /api/mothers — list mothers from DynamoDB (optional ?hospitalId= filter) */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
 
+  const token = getBearerToken(req);
+  if (!token) return json(res, 401, { error: "Missing authorization token" });
+
+  const user = await getUserRecordById(token);
+  if (!user) return json(res, 401, { error: "Invalid session" });
+
   const hospitalId =
-    typeof req.query.hospitalId === "string" ? req.query.hospitalId.trim() : undefined;
+    typeof req.query.hospitalId === "string"
+      ? req.query.hospitalId.trim()
+      : String(user.hospitalId ?? "ELR");
+
+  const userRef = userRefFromRecord(user, hospitalId);
 
   try {
-    const items = await listMotherRecords(hospitalId);
-    if (items.length === 0) {
-      const demo = demoMothers(hospitalId);
-      return json(res, 200, { items: demo, source: "demo", note: "No mothers in DB — showing demo patients" });
-    }
-    return json(res, 200, { items, source: "dynamodb" });
+    const items = await listMotherRecordsFast(hospitalId);
+    const filtered = filterMothersForRole(
+      items as Parameters<typeof filterMothersForRole>[0],
+      userRef,
+    );
+
+    return json(res, 200, { items: filtered, source: "dynamodb" });
   } catch (error) {
-    console.error("DynamoDB scan failed:", error);
-    const demo = demoMothers(hospitalId);
+    console.error("Mothers list failed:", error);
+    const items = filterMothersForRole(
+      (await listMotherRecordsFast(hospitalId)) as Parameters<typeof filterMothersForRole>[0],
+      userRef,
+    );
     return json(res, 200, {
-      items: demo,
+      items,
       source: "demo",
       note: "Database unreachable — showing demo patients",
     });

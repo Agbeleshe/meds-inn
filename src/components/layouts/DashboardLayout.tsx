@@ -6,11 +6,13 @@ import { TopBar } from './TopBar';
 import { fadeIn } from '@/lib/animations';
 import { DashboardTour } from '@/components/tour/DashboardTour';
 import { useApp } from '@/contexts/AppContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 export function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { role } = useApp();
   return (
+    <NotificationProvider>
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
       <div className="flex-1 min-w-0 flex flex-col">
@@ -29,5 +31,6 @@ export function DashboardLayout() {
         </motion.main>
       </div>
     </div>
+    </NotificationProvider>
   );
 }

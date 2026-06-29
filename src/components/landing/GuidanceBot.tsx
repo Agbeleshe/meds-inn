@@ -50,7 +50,7 @@ function botReply(input: string): Message[] {
       {
         id: `b-${Date.now()}-1`,
         from: 'bot',
-        text: "Welcome! Meds-inn gives healthcare teams a powerful dashboard to:\n\n• Manage enrolled mothers from pregnancy to baby's first year\n• Send clinician-approved medication reminders\n• Conduct video consultations with AI-generated pre-visit briefs\n• Track missed follow-ups and adherence in real time",
+        text: "Welcome! Meds-inn gives healthcare teams a powerful dashboard to:\n\n• Manage enrolled mothers from pregnancy to baby's first year\n• Send clinician-approved medication reminders\n• Upload lab results and documents for assigned mothers\n• Track missed follow-ups and adherence in real time",
       },
       {
         id: `b-${Date.now()}-2`,
@@ -68,7 +68,7 @@ function botReply(input: string): Message[] {
       {
         id: `b-${Date.now()}-1`,
         from: 'bot',
-        text: "Meds-inn supports you through every stage — from your first scan to your baby's first birthday:\n\n• Personal care plan from your clinic team\n• Daily medication reminders tailored by your nurse\n• Video consultations so the clinic comes to you\n• Baby milestone tracking and vaccination schedule",
+        text: "Meds-inn supports you through every stage — from your first scan to your baby's first birthday:\n\n• Personal care plan from your clinic team\n• Daily medication reminders tailored by your nurse\n• Secure messaging with your assigned specialists\n• Baby profile and milestone tracking",
       },
       {
         id: `b-${Date.now()}-2`,
@@ -86,7 +86,7 @@ function botReply(input: string): Message[] {
       {
         id: `b-${Date.now()}-1`,
         from: 'bot',
-        text: "Meds-inn is a hospital-driven maternal care platform that keeps mothers connected to their care team between clinic visits.\n\nHospitals use it to enrol mothers, assign care plans, and monitor adherence. Mothers use it to stay on track with reminders, check-ins, and video consultations.",
+        text: "Meds-inn is a hospital-driven maternal care platform that keeps mothers connected to their care team between clinic visits.\n\nHospitals use it to enrol mothers, assign care plans, and monitor adherence. Mothers use it to stay on track with reminders, appointments, and secure messaging.",
       },
       {
         id: `b-${Date.now()}-2`,

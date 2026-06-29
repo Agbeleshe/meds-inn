@@ -6,7 +6,7 @@ import {
   normalizeUsername,
   putUserWithLookup,
   stripSensitive,
-  usernameTaken,
+  emailTaken,
 } from "../lib/auth";
 import { toMotherItem, toUserItem, toUserLookupItem } from "../lib/items";
 import { json, methodNotAllowed, readBody } from "../lib/handler";
@@ -38,9 +38,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const password = body?.password;
   const hospitalId = body?.hospitalId;
   const careStage = body?.careStage;
+  const email = body?.email?.trim();
 
-  if (!firstName || !lastName || !password || !hospitalId || !careStage) {
-    return json(res, 400, { error: "Missing required signup fields" });
+  if (!firstName || !lastName || !password || !hospitalId || !careStage || !email) {
+    return json(res, 400, { error: "Missing required signup fields (first name, last name, email, password, hospital, care stage)" });
+  }
+
+  const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+  if (!gmailRegex.test(email)) {
+    return json(res, 400, { error: "A valid @gmail.com address is required to register (e.g. user@gmail.com)" });
   }
 
   if (password.length < 6) {
@@ -48,12 +54,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const fullName = `${firstName} ${lastName}`;
-  const username = normalizeUsername(fullName);
+  const username = email;
 
   try {
-    if (await usernameTaken(fullName, hospitalId, "mother")) {
+    if (await emailTaken(email, hospitalId, "mother")) {
       return json(res, 409, {
-        error: "An account with this name already exists at this hospital",
+        error: "An account with this email already exists at this hospital",
       });
     }
 
@@ -72,9 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       firstName,
       lastName,
       initials: initials(firstName, lastName),
-      email:
-        body.email?.trim() ||
-        `${username.replace(/\s+/g, ".")}@patient.meds-inn.health`,
+      email,
       hospitalId,
       motherId,
       careStage,
@@ -109,6 +113,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       onboardingComplete: false,
       careStage,
       babyWeeks: careStage === "postpartum" ? babyWeeks : undefined,
+      assignedNurseUserId: null,
+      assignedDoctorUserId: null,
+      specialistRequestStatus: null,
+      specialistRequestType: null,
     };
 
     await putUserWithLookup(

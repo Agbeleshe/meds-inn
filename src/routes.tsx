@@ -20,7 +20,6 @@ export const routes: RouteConfig[] = [
   { name: 'Care Plans', path: '/dashboard/care-plans' },
   { name: 'Medication Reminders', path: '/dashboard/medications' },
   { name: 'Appointments', path: '/dashboard/appointments' },
-  { name: 'Video Consultations', path: '/dashboard/video' },
   { name: 'AI Care Briefs', path: '/dashboard/care-briefs' },
   { name: 'Messages', path: '/dashboard/messages' },
   { name: 'Baby Care', path: '/dashboard/baby-care' },
@@ -28,4 +27,5 @@ export const routes: RouteConfig[] = [
   { name: 'Analytics', path: '/dashboard/analytics' },
   { name: 'Team', path: '/dashboard/team' },
   { name: 'Settings', path: '/dashboard/settings' },
+  { name: 'Notifications', path: '/dashboard/notifications' },
 ];

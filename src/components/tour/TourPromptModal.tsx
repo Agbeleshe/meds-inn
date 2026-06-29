@@ -134,7 +134,7 @@ export function TourPromptModal({ onAccept, onDecline }: TourPromptModalProps) {
                   onClick={() => dismiss(true)}
                   className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2"
                 >
-                  <Sparkles className="w-4 h-4" />
+
                   Yes, show me around
                 </button>
                 <button

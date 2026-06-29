@@ -1,6 +1,7 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb";
 import { findDemoUserRecord, getDemoUserRecordById } from "./demo-auth";
+import { withTimeout } from "./fast-fallback";
 
 const SESSION_PREFIX = "Bearer ";
 
@@ -43,22 +44,32 @@ async function getUserFromDynamoDB(userId: string) {
     }),
   );
   if (!result.Item) return null;
-  return stripKeys(result.Item as Record<string, unknown>);
+  const user = stripKeys(result.Item as Record<string, unknown>);
+  if (!user.id) {
+    user.id = user.userId || userId;
+  }
+  return user;
 }
 
 export async function getUserRecordById(userId: string) {
-  try {
-    const fromDb = await getUserFromDynamoDB(userId);
-    if (fromDb) return fromDb;
-  } catch (error) {
-    console.warn("DynamoDB getUserById failed, trying demo fallback:", error);
+  const demo = getDemoUserRecordById(userId);
+  // Try DynamoDB with a generous timeout; retry once for newly created accounts
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const fromDb = await withTimeout(getUserFromDynamoDB(userId), 5000, null);
+      if (fromDb) return fromDb;
+    } catch (error) {
+      console.warn(`DynamoDB getUserById failed (attempt ${attempt + 1}):`, error);
+    }
+    // Brief wait before retry (only runs on first failed attempt)
+    if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
   }
 
-  return getDemoUserRecordById(userId);
+  return demo;
 }
 
-async function findUserInDynamoDB(username: string, role: string, hospitalId: string) {
-  const normalized = normalizeUsername(username);
+async function findUserInDynamoDB(email: string, role: string, hospitalId: string) {
+  const normalized = email.trim().toLowerCase();
   const lookupKey = `${ENTITY_PREFIX.userLookup}${normalized}#${hospitalId}#${role}`;
 
   const lookup = await dynamodb.send(
@@ -73,7 +84,12 @@ async function findUserInDynamoDB(username: string, role: string, hospitalId: st
 
   if (lookup.Item?.userId) {
     const user = await getUserFromDynamoDB(String(lookup.Item.userId));
-    if (user) return user;
+    if (user) {
+      if (!user.id) {
+        user.id = String(lookup.Item.userId);
+      }
+      return user;
+    }
   }
 
   let lastKey: Record<string, unknown> | undefined;
@@ -82,11 +98,11 @@ async function findUserInDynamoDB(username: string, role: string, hospitalId: st
       new ScanCommand({
         TableName: TABLE_NAME,
         FilterExpression:
-          "entityType = :type AND username = :username AND #role = :role AND hospitalId = :hospitalId",
+          "entityType = :type AND (email = :email OR username = :email) AND #role = :role AND hospitalId = :hospitalId",
         ExpressionAttributeNames: { "#role": "role" },
         ExpressionAttributeValues: {
           ":type": "USER",
-          ":username": normalized,
+          ":email": normalized,
           ":role": role,
           ":hospitalId": hospitalId,
         },
@@ -95,7 +111,19 @@ async function findUserInDynamoDB(username: string, role: string, hospitalId: st
     );
 
     const item = result.Items?.[0];
-    if (item) return stripKeys(item as Record<string, unknown>);
+    if (item) {
+      const user = stripKeys(item as Record<string, unknown>);
+      if (!user.id && item[PARTITION_KEY]) {
+        const pk = String(item[PARTITION_KEY]);
+        if (pk.startsWith(ENTITY_PREFIX.user)) {
+          user.id = pk.slice(ENTITY_PREFIX.user.length);
+        }
+      }
+      if (!user.id) {
+        user.id = user.userId;
+      }
+      return user;
+    }
 
     lastKey = result.LastEvaluatedKey as Record<string, unknown> | undefined;
   } while (lastKey);
@@ -104,22 +132,22 @@ async function findUserInDynamoDB(username: string, role: string, hospitalId: st
 }
 
 export async function findUserByCredentials(
-  username: string,
+  email: string,
   role: string,
   hospitalId: string,
 ) {
   try {
-    const fromDb = await findUserInDynamoDB(username, role, hospitalId);
+    const fromDb = await findUserInDynamoDB(email, role, hospitalId);
     if (fromDb) return fromDb;
   } catch (error) {
     console.warn("DynamoDB credential lookup failed, trying demo fallback:", error);
   }
 
-  return findDemoUserRecord(username, role, hospitalId);
+  return findDemoUserRecord(email, role, hospitalId);
 }
 
-export async function usernameTaken(username: string, hospitalId: string, role: string) {
-  const existing = await findUserByCredentials(username, role, hospitalId);
+export async function emailTaken(email: string, hospitalId: string, role: string) {
+  const existing = await findUserByCredentials(email, role, hospitalId);
   return Boolean(existing);
 }
 

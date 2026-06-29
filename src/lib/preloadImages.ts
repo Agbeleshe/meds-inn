@@ -1,16 +1,13 @@
 /**
  * preloadImages
  *
- * Loads every image URL in parallel using Image() elements.
- * Calls onProgress(loaded, total) after each image settles (load OR error).
- * Returns a Promise that resolves once ALL images have settled.
- *
- * - Failed images are silently accepted so a single 404 can never block the splash.
- * - A per-image timeout of MAX_WAIT_MS prevents very slow CDN responses from
- *   stalling the splash indefinitely.
+ * Loads image URLs in parallel. Tracks successfully loaded URLs in
+ * sessionStorage so repeat visits / refreshes skip the network for
+ * images that were already fetched in this browser session.
  */
 
 const PER_IMAGE_TIMEOUT_MS = 8_000;
+const CACHE_KEY = 'meds-inn-image-cache-v1';
 
 export interface PreloadProgress {
   loaded: number;
@@ -19,17 +16,51 @@ export interface PreloadProgress {
   percent: number;
 }
 
+function readCache(): Set<string> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeCache(urls: Set<string>) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify([...urls]));
+  } catch {
+    // Quota exceeded or private mode — ignore
+  }
+}
+
+function markCached(url: string) {
+  const cache = readCache();
+  cache.add(url);
+  writeCache(cache);
+}
+
+export function isImageCached(url: string): boolean {
+  return readCache().has(url);
+}
+
 export function preloadImages(
   urls: string[],
   onProgress?: (p: PreloadProgress) => void,
 ): Promise<void> {
   const total = urls.length;
-  if (total === 0) return Promise.resolve();
+  if (total === 0) {
+    onProgress?.({ loaded: 0, total: 0, percent: 100 });
+    return Promise.resolve();
+  }
 
-  let loaded = 0;
+  const cache = readCache();
+  const cachedUrls = urls.filter((u) => cache.has(u));
+  const uncachedUrls = urls.filter((u) => !cache.has(u));
 
-  const tick = () => {
-    loaded += 1;
+  let loaded = cachedUrls.length;
+
+  const report = () => {
     onProgress?.({
       loaded,
       total,
@@ -37,28 +68,37 @@ export function preloadImages(
     });
   };
 
+  report();
+
+  if (uncachedUrls.length === 0) {
+    return Promise.resolve();
+  }
+
   const loadOne = (src: string): Promise<void> =>
-    new Promise<void>(resolve => {
+    new Promise<void>((resolve) => {
       const img = new Image();
       const timer = setTimeout(() => {
-        // Treat timeout as "done" — don't block the whole splash
-        tick();
+        loaded += 1;
+        report();
         resolve();
       }, PER_IMAGE_TIMEOUT_MS);
 
       img.onload = () => {
         clearTimeout(timer);
-        tick();
+        markCached(src);
+        loaded += 1;
+        report();
         resolve();
       };
       img.onerror = () => {
         clearTimeout(timer);
-        tick();
+        loaded += 1;
+        report();
         resolve();
       };
 
       img.src = src;
     });
 
-  return Promise.all(urls.map(loadOne)).then(() => undefined);
+  return Promise.all(uncachedUrls.map(loadOne)).then(() => undefined);
 }

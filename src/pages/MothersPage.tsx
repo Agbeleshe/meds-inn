@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { PatientStatus, RiskLevel } from '@/types/clinical';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMothers } from '@/hooks/use-mothers';
 import { DataSourceBadge } from '@/components/common/DataSourceBadge';
 import { TableSkeleton } from '@/components/common/TableSkeleton';
@@ -26,6 +27,8 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function MothersPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const { mothers: allPatients, source, loading, error } = useMothers();
   const [tab, setTab] = useState<TabKey>('all');
   const [search, setSearch] = useState('');
@@ -84,11 +87,17 @@ export default function MothersPage() {
             <h1 className="text-xl font-bold text-foreground">Mothers</h1>
             <DataSourceBadge loading={loading} source={source} error={error} />
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">Mothers who need attention, surfaced early.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isAdmin
+              ? 'All enrolled mothers in your hospital.'
+              : 'Mothers assigned to you — expecting and postpartum.'}
+          </p>
         </div>
+        {isAdmin && (
         <Button size="sm" className="gap-2 self-start md:self-auto" onClick={() => toast.success('Opening enrolment form')}>
           <UserPlus className="w-4 h-4" /> Enrol Mother
         </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -181,7 +190,11 @@ export default function MothersPage() {
                 </tr>
               ))}
               {!loading && patients.length === 0 && (
-                <tr><td colSpan={10} className="px-4 py-12 text-center text-sm text-muted-foreground">No patients match your current filters.</td></tr>
+                <tr><td colSpan={10} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  {isAdmin
+                    ? 'No patients match your current filters.'
+                    : 'No mothers are assigned to you yet.'}
+                </td></tr>
               )}
             </tbody>
           </table>
