@@ -16,5 +16,21 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["./**/*.ts"]
+  "include": [
+    "./**/*.ts",
+    "../server/**/*.ts",
+    "../src/lib/*.ts",
+    "../src/types/*.ts"
+  ],
+  "exclude": [
+    "../src/hooks",
+    "../src/contexts",
+    "../src/lib/api-client.ts",
+    "../src/lib/baby-week-education.ts",
+    "../src/lib/notification-links.ts",
+    "../src/lib/preloadImages.ts",
+    "../src/lib/care-brief-print.ts",
+    "../src/lib/download-file.ts",
+    "../src/lib/animations.ts"
+  ]
 }
