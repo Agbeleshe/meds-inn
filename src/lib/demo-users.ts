@@ -1,4 +1,4 @@
-import type { Role } from "@/types/clinical.js";
+import type { Role } from "../types/clinical.js";
 import { HOSPITALS } from "./hospitals.js";
 
 /** Demo staff & patients — usernames are full names (normalized lowercase in DB) */

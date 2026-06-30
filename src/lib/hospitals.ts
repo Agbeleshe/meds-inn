@@ -1,4 +1,4 @@
-import type { Hospital } from "@/types/clinical.js";
+import type { Hospital } from "../types/clinical.js";
 
 /** Partner hospitals — only the first is active in auth UI for now */
 export const HOSPITALS: Hospital[] = [

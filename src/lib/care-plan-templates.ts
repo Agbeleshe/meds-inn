@@ -1,4 +1,4 @@
-import type { CarePlan, CarePlanSection, MotherChecklistItem } from "@/types/clinical.js";
+import type { CarePlan, CarePlanSection, MotherChecklistItem } from "../types/clinical.js";
 
 /** Serializable care plan sections (stored in DynamoDB, no React icons) */
 export const DEFAULT_CARE_PLAN_SECTIONS: CarePlanSection[] = [

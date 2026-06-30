@@ -1,4 +1,4 @@
-import { NAV_ITEMS, MOTHER_NAV_ITEMS } from '@/lib/nav-items.js';
+import { NAV_ITEMS, MOTHER_NAV_ITEMS } from './nav-items.js';
 
 const EXTRA_LABELS: Record<string, string> = {
   '/login': 'Sign In',

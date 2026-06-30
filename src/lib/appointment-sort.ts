@@ -1,4 +1,4 @@
-import type { Appointment } from "@/types/clinical.js";
+import type { Appointment } from "../types/clinical.js";
 
 /** Parse "10:00 AM", "09:00", "2:00 PM" into minutes since midnight for sorting. */
 function timeToMinutes(time: string): number {

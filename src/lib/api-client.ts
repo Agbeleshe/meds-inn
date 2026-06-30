@@ -1,7 +1,7 @@
 import type { ApiListResponse } from "@/hooks/use-api-query.js";
-import type { Role, UserProfile } from "@/types/clinical.js";
-import { getStoredSessionToken } from "@/lib/auth-session.js";
-import { mergeMotherProfile, writeMotherOverride } from "@/lib/mother-profile-cache.js";
+import type { Role, UserProfile } from "../types/clinical.js";
+import { getStoredSessionToken } from "./auth-session.js";
+import { mergeMotherProfile, writeMotherOverride } from "./mother-profile-cache.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 

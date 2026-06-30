@@ -1,4 +1,4 @@
-import type { ChatThread } from "@/types/clinical.js";
+import type { ChatThread } from "../types/clinical.js";
 import { isAssignedToMotherById } from "./assignments.js";
 
 type UserRef = {

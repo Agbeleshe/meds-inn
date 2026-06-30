@@ -1,4 +1,4 @@
-import type { TimelineEvent } from "@/types/clinical.js";
+import type { TimelineEvent } from "../types/clinical.js";
 
 export const DEFAULT_TIMELINE_EVENTS: TimelineEvent[] = [
   {
