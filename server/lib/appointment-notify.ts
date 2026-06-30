@@ -1,5 +1,4 @@
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { DEMO_USERS } from "../../src/lib/demo-users.js";
 import { dynamodb, TABLE_NAME } from "./dynamodb.js";
 import { createNotification } from "./notifications.js";
 import { resolveMotherUserId } from "./fast-fallback.js";
@@ -39,11 +38,6 @@ export function buildVideoRoomId(appointmentId: string) {
 export async function findMotherUserId(patientId: string): Promise<string | null> {
   const fast = resolveMotherUserId(patientId);
   if (fast) return fast;
-
-  const demo = DEMO_USERS.find(
-    (u) => u.role === "mother" && u.motherId === patientId,
-  );
-  if (demo) return demo.id;
 
   try {
     const result = await dynamodb.send(

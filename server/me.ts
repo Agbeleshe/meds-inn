@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerToken, getUserById } from "./lib/auth.js";
-import { getDemoUserRecordById } from "./lib/demo-auth.js";
 import { json, methodNotAllowed } from "./lib/handler.js";
 
 /** GET /api/me — current user profile from DynamoDB USER# (Bearer token = user id) */
@@ -18,15 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return json(res, 404, { error: "User profile not found" });
     }
 
-    const source = getDemoUserRecordById(token) ? "demo" : "dynamodb";
-    return json(res, 200, { user, source });
+    return json(res, 200, { user, source: "dynamodb" });
   } catch (error) {
     console.error("GET /api/me failed:", error);
-    const demo = getDemoUserRecordById(token);
-    if (demo) {
-      const { password: _p, ...user } = demo;
-      return json(res, 200, { user, source: "demo" });
-    }
     return json(res, 500, { error: "Failed to load profile" });
   }
 }

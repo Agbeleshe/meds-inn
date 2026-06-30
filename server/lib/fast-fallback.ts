@@ -1,15 +1,10 @@
-import { DEMO_USERS } from "../../src/lib/demo-users.js";
-
-/** Demo motherId → auth user id (avoids slow USER table scans). */
-const MOTHER_USER_IDS: Record<string, string> = {
-  "MED-ELR-24018": "user-mother-elr",
-  "MED-ELR-24031": "user-mother-sun",
-};
-
-export function resolveMotherUserId(motherId: string): string | null {
-  if (MOTHER_USER_IDS[motherId]) return MOTHER_USER_IDS[motherId];
-  const match = DEMO_USERS.find((u) => u.motherId === motherId);
-  return match?.id ?? null;
+/**
+ * Previously returned a hardcoded demo motherId → userId mapping.
+ * Demo data has been removed; this always returns null so callers
+ * fall through to the DynamoDB lookup.
+ */
+export function resolveMotherUserId(_motherId: string): string | null {
+  return null;
 }
 
 /** Race a promise against a timeout; returns fallback when slow or rejected. */

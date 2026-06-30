@@ -1,6 +1,5 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { dynamodb, TABLE_NAME, ENTITY_PREFIX, PARTITION_KEY, SORT_KEY, stripKeys } from "./dynamodb.js";
-import { findDemoUserRecord, getDemoUserRecordById } from "./demo-auth.js";
 import { withTimeout } from "./fast-fallback.js";
 
 const SESSION_PREFIX = "Bearer ";
@@ -52,7 +51,6 @@ async function getUserFromDynamoDB(userId: string) {
 }
 
 export async function getUserRecordById(userId: string) {
-  const demo = getDemoUserRecordById(userId);
   // Try DynamoDB with a generous timeout; retry once for newly created accounts
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -65,7 +63,7 @@ export async function getUserRecordById(userId: string) {
     if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
   }
 
-  return demo;
+  return null;
 }
 
 async function findUserInDynamoDB(email: string, role: string, hospitalId: string) {
@@ -136,14 +134,8 @@ export async function findUserByCredentials(
   role: string,
   hospitalId: string,
 ) {
-  try {
-    const fromDb = await findUserInDynamoDB(email, role, hospitalId);
-    if (fromDb) return fromDb;
-  } catch (error) {
-    console.warn("DynamoDB credential lookup failed, trying demo fallback:", error);
-  }
-
-  return findDemoUserRecord(email, role, hospitalId);
+  const fromDb = await findUserInDynamoDB(email, role, hospitalId);
+  return fromDb ?? null;
 }
 
 export async function emailTaken(email: string, hospitalId: string, role: string) {

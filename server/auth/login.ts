@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { findUserByCredentials, stripSensitive } from "../lib/auth.js";
-import { findDemoUserRecord, getDemoUserRecordById } from "../lib/demo-auth.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 
 interface LoginBody {
@@ -34,18 +33,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const user = stripSensitive(record);
     const token = String(user.id);
-    const source = getDemoUserRecordById(token) ? "demo" : "dynamodb";
-
-    return json(res, 200, { user, token, source });
+    return json(res, 200, { user, token, source: "dynamodb" });
   } catch (error) {
     console.error("Login failed:", error);
-    const demo = findDemoUserRecord(email, role, hospitalId);
-    if (demo && String(demo.password) === password) {
-      const user = stripSensitive(demo);
-      return json(res, 200, { user, token: String(user.id), source: "demo" });
-    }
     return json(res, 503, {
-      error: "Sign-in service unavailable. Check your network or run npm run vercel:env",
+      error: "Sign-in service unavailable. Please try again later.",
     });
   }
 }
