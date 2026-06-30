@@ -1,5 +1,5 @@
-import type { ChatMessage, ChatThread } from "@/types/clinical.js";
-import { CHAT_EDIT_WINDOW_MS } from "@/lib/chat-constants.js";
+import type { ChatMessage, ChatThread } from "../types/clinical.js";
+import { CHAT_EDIT_WINDOW_MS } from "./chat-constants.js";
 
 const PLACEHOLDER_SUBJECTS = new Set(["", "New conversation", "Care team chat"]);
 
