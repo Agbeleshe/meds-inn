@@ -1,15 +1,25 @@
 import { spawn } from "node:child_process";
 
-// Start Vercel dev directly — the rewrites in vercel.json are now
-// carefully crafted to ignore Vite's internal assets, so it works flawlessly
-const dev = spawn("npx", ["vercel", "dev"], {
+// Start Vercel dev API server
+const api = spawn("npm", ["run", "dev:api"], {
   stdio: "inherit",
   env: process.env,
 });
 
-dev.on("exit", (code) => {
-  process.exit(code ?? 0);
+// Start Vite UI server
+const ui = spawn("npm", ["run", "dev:ui"], {
+  stdio: "inherit",
+  env: process.env,
 });
 
-process.on("SIGINT", () => dev.kill("SIGINT"));
-process.on("SIGTERM", () => dev.kill("SIGTERM"));
+function cleanup(code) {
+  api.kill();
+  ui.kill();
+  process.exit(code ?? 0);
+}
+
+api.on("exit", cleanup);
+ui.on("exit", cleanup);
+
+process.on("SIGINT", () => cleanup(0));
+process.on("SIGTERM", () => cleanup(0));

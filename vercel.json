@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "devCommand": "vite --host 127.0.0.1 --port $PORT",
+  "devCommand": "node -e 'console.log(\"Vercel API ready\"); setInterval(() => {}, 1000)'",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },

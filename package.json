@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:ui": "vite --host 127.0.0.1",
+    "dev:api": "vercel dev --listen 5174",
+    "dev:ui": "vite --host 127.0.0.1 --port 5173",
     "vercel:login": "vercel login",
     "vercel:link": "vercel link",
     "vercel:env": "vercel env pull .env.local",
