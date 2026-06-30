@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "devCommand": "node -e 'console.log(\"Vercel API ready\"); setInterval(() => {}, 1000)'",
+  "devCommand": "node -e 'require(\"http\").createServer().listen(process.env.PORT, () => console.log(\"Vercel API ready\"))'",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },

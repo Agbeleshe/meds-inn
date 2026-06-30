@@ -65,7 +65,7 @@ export async function listMedicationRecords(hospitalId?: string) {
       2500,
       { Items: [] } as any,
     );
-    let items = (result.Items ?? []).map((item) =>
+    let items = (result.Items ?? []).map((item: any) =>
       normalizeMedication(stripKeys(item as Record<string, unknown>)),
     );
     if (hospitalId) {
