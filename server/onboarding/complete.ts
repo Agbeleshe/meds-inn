@@ -4,7 +4,7 @@ import {
   getUserRecordById,
   putUserItem,
   stripSensitive,
-} from "../lib/auth";
+} from "../lib/auth.js";
 import { getMotherRecordById, putMotherRecord, trimesterFromWeeks } from "../lib/mothers.js";
 import { toUserItem } from "../lib/items.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";

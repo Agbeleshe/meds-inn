@@ -6,7 +6,7 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { getCareBriefSession, saveCareBriefSession } from "./care-brief-session-store.js";
 
 export interface CareBriefRecord {

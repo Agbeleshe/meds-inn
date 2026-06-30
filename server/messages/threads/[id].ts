@@ -11,7 +11,7 @@ import {
   putChatThreadRecord,
   sanitizeMessageForRole,
   updateChatMessageRecord,
-} from "../../lib/chat-records";
+} from "../../lib/chat-records.js";
 import { canAccessChatThread, canStartChatWithSpecialist } from "../../../src/lib/chat-access.js";
 import { firstMessageSubject } from "../../../src/lib/chat-display.js";
 import { CHAT_EDIT_WINDOW_MS } from "../../../src/lib/chat-constants.js";

@@ -8,7 +8,7 @@ import {
   babyWeeksFromBirthDate,
   getBabyProfileRecord,
   normalizeBabyProfile,
-} from "./lib/baby-records";
+} from "./lib/baby-records.js";
 import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
 async function putBabyProfile(motherId: string, profile: Record<string, unknown>) {

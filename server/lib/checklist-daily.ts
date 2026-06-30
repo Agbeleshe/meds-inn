@@ -6,13 +6,13 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import {
   clearChecklistDaySessions,
   getChecklistDaySession,
   listChecklistDaySessions,
   saveChecklistDaySession,
-} from "./checklist-session-store";
+} from "./checklist-session-store.js";
 
 export interface DailyChecklistItem {
   id: string;

@@ -14,7 +14,7 @@ function walk(dir: string, fileList: string[] = []) {
   return fileList;
 }
 
-const files = [...walk('api'), ...walk('server')];
+const files = [...walk('api'), ...walk('server'), ...walk('src/lib'), ...walk('src/types')];
 let changedFiles = 0;
 
 for (const file of files) {
@@ -22,17 +22,37 @@ for (const file of files) {
   let original = content;
 
   // Regex to match from "./something" or from "../something" or import "./something"
-  // and append .js if it doesn't already end in .js
-  content = content.replace(/(import\s+.*?from\s+["']\.\.?\/[^"']*)(["'])/g, (match, p1, p2) => {
-    if (!p1.endsWith('.js') && !p1.endsWith('.ts')) {
+  // It handles multiline imports since "from" is the keyword.
+  content = content.replace(/(from\s+["']\.\.?\/[^"']*)(["'])/g, (match, p1, p2) => {
+    if (!p1.endsWith('.js') && !p1.endsWith('.ts') && !p1.endsWith('.json')) {
       return p1 + '.js' + p2;
     }
     return match;
   });
 
-  // Also replace dynamic imports if any
+  content = content.replace(/(import\s+["']\.\.?\/[^"']*)(["'])/g, (match, p1, p2) => {
+    if (!p1.endsWith('.js') && !p1.endsWith('.ts') && !p1.endsWith('.json')) {
+      return p1 + '.js' + p2;
+    }
+    return match;
+  });
+
   content = content.replace(/(import\(["']\.\.?\/[^"']*)(["']\))/g, (match, p1, p2) => {
-    if (!p1.endsWith('.js') && !p1.endsWith('.ts')) {
+    if (!p1.endsWith('.js') && !p1.endsWith('.ts') && !p1.endsWith('.json')) {
+      return p1 + '.js' + p2;
+    }
+    return match;
+  });
+
+  // Also replace @/ imports with .js if they don't have it
+  content = content.replace(/(from\s+["']@\/[^"']*)(["'])/g, (match, p1, p2) => {
+    if (!p1.endsWith('.js') && !p1.endsWith('.ts') && !p1.endsWith('.json')) {
+      return p1 + '.js' + p2;
+    }
+    return match;
+  });
+  content = content.replace(/(import\s+["']@\/[^"']*)(["'])/g, (match, p1, p2) => {
+    if (!p1.endsWith('.js') && !p1.endsWith('.ts') && !p1.endsWith('.json')) {
       return p1 + '.js' + p2;
     }
     return match;

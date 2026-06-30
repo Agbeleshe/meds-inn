@@ -11,7 +11,7 @@ import {
   resetChecklistHistory,
   toggleDailyChecklistItem,
   type DailyChecklistAssignment,
-} from "../lib/checklist-daily";
+} from "../lib/checklist-daily.js";
 import { notifyMotherCarePlanAssigned } from "../lib/care-plan-notify.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 

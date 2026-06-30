@@ -1,4 +1,4 @@
-import type { Role } from "@/types/clinical";
+import type { Role } from "@/types/clinical.js";
 
 /** Routes mothers cannot access (staff-only clinical tools) */
 export const STAFF_ONLY_PREFIXES = [

@@ -3,14 +3,14 @@ import {
   dynamodb,
   TABLE_NAME,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { prefixFilter, toAppointmentItem } from "./items.js";
 import { withTimeout } from "./fast-fallback.js";
 import { APPOINTMENTS } from "../../src/lib/demo-data.js";
 import {
   listAppointmentSessions,
   saveAppointmentSession,
-} from "./appointment-session-store";
+} from "./appointment-session-store.js";
 
 export function normalizeAppointment(raw: Record<string, unknown>) {
   return {

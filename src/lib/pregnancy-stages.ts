@@ -1,4 +1,4 @@
-import type { PregnancyStage, PregnancyStageStatus } from "@/types/clinical";
+import type { PregnancyStage, PregnancyStageStatus } from "@/types/clinical.js";
 
 export const PREGNANCY_STAGE_TEMPLATE: Omit<PregnancyStage, "status" | "currentWeek">[] = [
   {

@@ -5,7 +5,7 @@ import {
   appendNotificationSession,
   listNotificationSessions,
   markNotificationSessionRead,
-} from "./notification-session-store";
+} from "./notification-session-store.js";
 
 export function toNotificationItem(
   notification: Record<string, unknown>,

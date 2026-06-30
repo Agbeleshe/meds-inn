@@ -11,12 +11,12 @@ import {
   listChatThreadRecords,
   putChatMessageRecord,
   putChatThreadRecord,
-} from "../lib/chat-records";
+} from "../lib/chat-records.js";
 import {
   canAccessChatThread,
   canStartChatWithSpecialist,
   filterChatThreadsForUser,
-} from "../../src/lib/chat-access";
+} from "../../src/lib/chat-access.js";
 import { getSpecialistProfile } from "../../src/lib/specialist-profiles.js";
 import { firstMessageSubject } from "../../src/lib/chat-display.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";

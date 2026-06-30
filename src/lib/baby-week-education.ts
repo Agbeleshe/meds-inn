@@ -1,4 +1,4 @@
-import type { WeekEducation } from "@/lib/pregnancy-week-education";
+import type { WeekEducation } from "@/lib/pregnancy-week-education.js";
 
 /** Newborn & first-year education anchors (weeks 0–52). */
 const BABY_WEEK_ANCHORS = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52] as const;

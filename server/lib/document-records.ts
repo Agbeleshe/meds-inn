@@ -4,7 +4,7 @@ import {
   TABLE_NAME,
   ENTITY_PREFIX,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { prefixFilter, toDocumentItem } from "./items.js";
 import { withTimeout } from "./fast-fallback.js";
 import {
@@ -14,7 +14,7 @@ import {
   isDocumentInSession,
   listDocumentSessions,
   saveDocumentSession,
-} from "./document-session-store";
+} from "./document-session-store.js";
 
 export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 /** Base64 chars per DynamoDB chunk (~300KB raw per chunk, under 400KB item limit). */

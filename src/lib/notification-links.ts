@@ -1,4 +1,4 @@
-import type { AppNotification } from "@/types/clinical";
+import type { AppNotification } from "@/types/clinical.js";
 
 /** Deep link for actionable notifications. */
 export function notificationHref(n: AppNotification): string | null {

@@ -1,5 +1,5 @@
-import type { ChatThread } from "@/types/clinical";
-import { isAssignedToMotherById } from "./assignments";
+import type { ChatThread } from "@/types/clinical.js";
+import { isAssignedToMotherById } from "./assignments.js";
 
 type UserRef = {
   id: string;

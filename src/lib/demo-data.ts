@@ -23,7 +23,7 @@ export type {
   DashboardMetrics,
   VaccinationEntry,
   MilestoneEntry,
-} from "@/types/clinical";
+} from "@/types/clinical.js";
 
 import type {
   Role,
@@ -36,9 +36,9 @@ import type {
   VaccinationEntry,
   MilestoneEntry,
   Hospital,
-} from "@/types/clinical";
+} from "@/types/clinical.js";
 
-import { HOSPITALS } from "./hospitals";
+import { HOSPITALS } from "./hospitals.js";
 
 /** @deprecated Use HOSPITALS[0] — kept for legacy imports */
 export const HOSPITAL = HOSPITALS[0];

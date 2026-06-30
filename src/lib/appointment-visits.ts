@@ -1,5 +1,5 @@
-import type { Appointment } from "@/types/clinical";
-import { appointmentDateTimeMs } from "@/lib/appointment-sort";
+import type { Appointment } from "@/types/clinical.js";
+import { appointmentDateTimeMs } from "@/lib/appointment-sort.js";
 
 const UPCOMING_STATUSES = new Set(["scheduled"]);
 

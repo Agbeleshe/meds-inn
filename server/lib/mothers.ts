@@ -7,7 +7,7 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { motherListFilter, toMotherItem } from "./items.js";
 import { PATIENTS } from "../../src/lib/demo-data.js";
 import { withTimeout } from "./fast-fallback.js";
@@ -15,7 +15,7 @@ import {
   getMotherSession,
   getAllMotherSessions,
   saveMotherSession,
-} from "./mother-session-store";
+} from "./mother-session-store.js";
 
 export async function getMotherRecordById(motherId: string) {
   const result = await dynamodb.send(

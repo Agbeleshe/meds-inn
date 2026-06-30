@@ -3,7 +3,7 @@ import { getBearerToken, getUserRecordById } from "../../lib/auth.js";
 import {
   getMotherRecordResolved,
   putMotherRecordResolved,
-} from "../../lib/mothers";
+} from "../../lib/mothers.js";
 import { notifyHospitalAdmins } from "../../lib/notifications.js";
 import { json, methodNotAllowed, readBody } from "../../lib/handler.js";
 

@@ -5,7 +5,7 @@ import {
   getMotherRecordResolved,
   putMotherRecordResolved,
   trimesterFromWeeks,
-} from "../lib/mothers";
+} from "../lib/mothers.js";
 import { createNotification } from "../lib/notifications.js";
 import { findMotherUserId } from "../lib/appointment-notify.js";
 import { getWeekEducation } from "../../src/lib/pregnancy-week-education.js";

@@ -6,7 +6,7 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { withTimeout } from "./fast-fallback.js";
 import { toChatMessageItem, toChatThreadItem, prefixFilter } from "./items.js";
 import { buildThreadId } from "../../src/lib/chat-demo-data.js";
@@ -17,7 +17,7 @@ import {
   saveChatMessageSession,
   saveChatThreadSession,
   updateChatMessageSession,
-} from "./chat-session-store";
+} from "./chat-session-store.js";
 import type { ChatMessage, ChatThread } from "../../src/types/clinical.js";
 
 function normalizeThread(raw: Record<string, unknown>): ChatThread {

@@ -7,7 +7,7 @@ import {
   normalizeAppointment,
   putAppointmentRecord,
   todayDateString,
-} from "../lib/appointment-records";
+} from "../lib/appointment-records.js";
 import { notifyMotherAppointmentRescheduled } from "../lib/appointment-notify.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 

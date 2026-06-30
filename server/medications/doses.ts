@@ -11,7 +11,7 @@ import {
   buildDoseHistory,
   computeAdherenceStats,
   getMedicationRecordById,
-} from "../lib/medication-records";
+} from "../lib/medication-records.js";
 import { createNotification } from "../lib/notifications.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 

@@ -8,7 +8,7 @@ import {
   canEditMotherCare,
   isAssignedToMother,
   filterMothersByAssignmentTab,
-} from "../../src/lib/assignments";
+} from "../../src/lib/assignments.js";
 import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET /api/care-plans — summaries for role-filtered mothers */

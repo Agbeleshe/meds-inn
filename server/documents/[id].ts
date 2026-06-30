@@ -7,7 +7,7 @@ import {
   documentMetaToClient,
   getDocumentContentBase64,
   getDocumentMeta,
-} from "../lib/document-records";
+} from "../lib/document-records.js";
 import { json, methodNotAllowed } from "../lib/handler.js";
 
 /** GET/DELETE /api/documents/:id — download or delete */

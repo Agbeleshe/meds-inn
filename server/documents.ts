@@ -8,7 +8,7 @@ import {
   listDocumentRecords,
   MAX_DOCUMENT_BYTES,
   putDocumentRecord,
-} from "./lib/document-records";
+} from "./lib/document-records.js";
 import { listDocumentSessions } from "./lib/document-session-store.js";
 import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 import { createNotification } from "./lib/notifications.js";

@@ -10,7 +10,7 @@ import {
   defaultScheduleTimes,
   listDoseRecords,
   computeAdherenceStats,
-} from "./lib/medication-records";
+} from "./lib/medication-records.js";
 import { withTimeout } from "./lib/fast-fallback.js";
 import { MEDICATIONS } from "../src/lib/demo-data.js";
 import { json, methodNotAllowed, readBody } from "./lib/handler.js";

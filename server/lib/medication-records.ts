@@ -6,7 +6,7 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { prefixFilter, toMedicationDoseItem, toMedicationItem } from "./items.js";
 import { withTimeout } from "./fast-fallback.js";
 import { MEDICATIONS } from "../../src/lib/demo-data.js";

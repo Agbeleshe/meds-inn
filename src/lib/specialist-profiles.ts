@@ -1,6 +1,6 @@
-import { LANDING_IMAGES } from '@/lib/site-images';
-import { resolveDoctorUserId, resolveNurseUserId } from '@/lib/assignments';
-import type { Mother } from '@/types/clinical';
+import { LANDING_IMAGES } from '@/lib/site-images.js';
+import { resolveDoctorUserId, resolveNurseUserId } from '@/lib/assignments.js';
+import type { Mother } from '@/types/clinical.js';
 
 export interface SpecialistProfile {
   userId: string;

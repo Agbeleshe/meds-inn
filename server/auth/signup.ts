@@ -7,7 +7,7 @@ import {
   putUserWithLookup,
   stripSensitive,
   emailTaken,
-} from "../lib/auth";
+} from "../lib/auth.js";
 import { toMotherItem, toUserItem, toUserLookupItem } from "../lib/items.js";
 import { json, methodNotAllowed, readBody } from "../lib/handler.js";
 

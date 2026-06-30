@@ -1,4 +1,4 @@
-import type { Mother, Role, UserProfile, Medication } from "@/types/clinical";
+import type { Mother, Role, UserProfile, Medication } from "@/types/clinical.js";
 
 /** Map display names from seed data → demo USER# ids */
 export const STAFF_USER_IDS: Record<string, string> = {

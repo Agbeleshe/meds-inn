@@ -4,7 +4,7 @@ import { canAccessMother } from "../../lib/access.js";
 import {
   getMotherRecordResolved,
   putMotherRecordResolved,
-} from "../../lib/mothers";
+} from "../../lib/mothers.js";
 import { createNotification, notifyHospitalAdmins } from "../../lib/notifications.js";
 import { json, methodNotAllowed, readBody } from "../../lib/handler.js";
 

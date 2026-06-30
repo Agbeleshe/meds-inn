@@ -9,11 +9,11 @@ import {
   listAppointmentRecords,
   normalizeAppointment,
   putAppointmentRecord,
-} from "./lib/appointment-records";
+} from "./lib/appointment-records.js";
 import {
   notifyMotherAppointmentScheduled,
   buildVideoRoomId,
-} from "./lib/appointment-notify";
+} from "./lib/appointment-notify.js";
 import { processAppointmentReminders } from "./lib/appointment-reminders.js";
 import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 

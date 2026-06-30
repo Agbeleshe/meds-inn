@@ -6,12 +6,12 @@ import {
   PARTITION_KEY,
   SORT_KEY,
   stripKeys,
-} from "./dynamodb";
+} from "./dynamodb.js";
 import { toVideoSessionItem } from "./items.js";
 import {
   getVideoSessionSession,
   saveVideoSessionSession,
-} from "./video-session-session-store";
+} from "./video-session-session-store.js";
 
 export function normalizeVideoSession(raw: Record<string, unknown>) {
   return {

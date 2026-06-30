@@ -1,5 +1,5 @@
-import type { CareBriefRecord } from "@/lib/api-client";
-import { ACTIVE_HOSPITAL } from "@/lib/hospitals";
+import type { CareBriefRecord } from "@/lib/api-client.js";
+import { ACTIVE_HOSPITAL } from "@/lib/hospitals.js";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 

@@ -11,7 +11,7 @@ import {
   listBabyMedicationRecords,
   getBabyChecklistDay,
   babyWeeksFromBirthDate,
-} from "./baby-records";
+} from "./baby-records.js";
 
 function daysAgo(n: number) {
   const d = new Date();

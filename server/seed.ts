@@ -14,7 +14,7 @@ import {
   toTimelineItem,
   toUserItem,
   toUserLookupItem,
-} from "./lib/items";
+} from "./lib/items.js";
 import { json, methodNotAllowed } from "./lib/handler.js";
 import { DEMO_USERS, HOSPITALS } from "../src/lib/demo-users.js";
 import {
@@ -25,7 +25,7 @@ import {
   MESSAGES,
   PATIENTS,
   TEAM_MEMBERS,
-} from "../src/lib/demo-data";
+} from "../src/lib/demo-data.js";
 import { DEFAULT_TIMELINE_EVENTS } from "../src/lib/timeline-events.js";
 import { buildDefaultCarePlan } from "../src/lib/care-plan-templates.js";
 

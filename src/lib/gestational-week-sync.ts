@@ -1,4 +1,4 @@
-import { trimesterFromWeeks } from "./pregnancy-dates";
+import { trimesterFromWeeks } from "./pregnancy-dates.js";
 
 /** Gestational week from EDD (40-week pregnancy, ISO date YYYY-MM-DD). */
 export function gestationalWeekFromEdd(edd: string, referenceDate = new Date()): number | null {

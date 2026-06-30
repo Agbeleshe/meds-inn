@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatThread } from '@/types/clinical';
+import type { ChatMessage, ChatThread } from '@/types/clinical.js';
 
 export function buildThreadId(patientId: string, specialistUserId: string) {
   return `${patientId}#${specialistUserId}`;

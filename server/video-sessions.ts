@@ -6,11 +6,11 @@ import {
   getAppointmentById,
   normalizeAppointment,
   putAppointmentRecord,
-} from "./lib/appointment-records";
+} from "./lib/appointment-records.js";
 import {
   getVideoSessionRecord,
   putVideoSessionRecord,
-} from "./lib/video-session-records";
+} from "./lib/video-session-records.js";
 import { logActivity } from "./lib/activity-log.js";
 import { json, methodNotAllowed, readBody } from "./lib/handler.js";
 
